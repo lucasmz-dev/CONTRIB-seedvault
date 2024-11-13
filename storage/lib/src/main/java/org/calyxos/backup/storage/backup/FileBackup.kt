@@ -31,7 +31,7 @@ internal class FileBackup(
 
     suspend fun backupFiles(
         files: List<ContentFile>,
-        availableChunkIds: HashSet<String>,
+        availableChunkIds: Set<String>,
         backupObserver: BackupObserver?,
     ): BackupResult {
         val chunkIds = HashSet<String>()
@@ -76,7 +76,7 @@ internal class FileBackup(
     @Throws(IOException::class, GeneralSecurityException::class)
     private suspend fun backupFile(
         file: ContentFile,
-        availableChunkIds: HashSet<String>,
+        availableChunkIds: Set<String>,
     ): FileBackupResult {
         val cachedFile = filesCache.getByUri(file.uri)
         val missingChunkIds = cachedFile?.chunks?.minus(availableChunkIds) ?: emptyList()

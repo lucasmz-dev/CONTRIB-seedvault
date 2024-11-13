@@ -30,7 +30,7 @@ internal class SmallFileBackup(
 
     suspend fun backupFiles(
         files: List<ContentFile>,
-        availableChunkIds: HashSet<String>,
+        availableChunkIds: Set<String>,
         backupObserver: BackupObserver?,
     ): BackupResult {
         val chunkIds = HashSet<String>()

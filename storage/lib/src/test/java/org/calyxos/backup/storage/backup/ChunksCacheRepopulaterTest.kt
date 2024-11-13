@@ -14,14 +14,14 @@ import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
 import kotlinx.coroutines.runBlocking
+import org.calyxos.backup.storage.SnapshotRetriever
 import org.calyxos.backup.storage.api.StoredSnapshot
 import org.calyxos.backup.storage.db.CachedChunk
 import org.calyxos.backup.storage.db.ChunksCache
 import org.calyxos.backup.storage.db.Db
+import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.backup.storage.getRandomString
 import org.calyxos.backup.storage.mockLog
-import org.calyxos.backup.storage.SnapshotRetriever
-import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType.Blob
 import org.junit.Assert.assertEquals
@@ -59,7 +59,7 @@ internal class ChunksCacheRepopulaterTest {
         val chunk3 = getRandomString(6) // not referenced by any snapshot
         val chunk4 = getRandomString(6) // in 1 snapshot
         val chunk5 = getRandomString(6) // in 1 snapshot, but not available in storage
-        val availableChunkIds = hashSetOf(chunk1, chunk2, chunk3, chunk4)
+        val availableChunkIds = mapOf(chunk1 to 3L, chunk2 to 5L, chunk3 to 23L, chunk4 to 42L)
         val snapshot1 = BackupSnapshot.newBuilder()
             .setTimeStart(Random.nextLong())
             .addMediaFiles(BackupMediaFile.newBuilder().addChunkIds(chunk1))
@@ -77,9 +77,9 @@ internal class ChunksCacheRepopulaterTest {
         val storedSnapshot2 = StoredSnapshot("bar", snapshot2.timeStart)
         val storedSnapshots = listOf(storedSnapshot1, storedSnapshot2)
         val cachedChunks = listOf(
-            CachedChunk(chunk1, 2, 0),
-            CachedChunk(chunk2, 2, 0),
-            CachedChunk(chunk4, 1, 0),
+            CachedChunk(chunk1, 2, availableChunkIds[chunk1]!!),
+            CachedChunk(chunk2, 2, availableChunkIds[chunk2]!!),
+            CachedChunk(chunk4, 1, availableChunkIds[chunk4]!!),
         ) // chunk3 is not referenced and should get deleted
         val cachedChunksSlot = slot<Collection<CachedChunk>>()
 

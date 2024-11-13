@@ -99,13 +99,12 @@ internal class Backup(
         try {
             // get available chunks, so we do not need to rely solely on local cache
             // for checking if a chunk already exists on storage
-            val chunkIds = ArrayList<String>()
+            val availableChunkIds = mutableMapOf<String, Long>()
             val topLevelFolder = TopLevelFolder.fromAndroidId(androidId)
             backend.list(topLevelFolder, FileBackupFileType.Blob::class) { fileInfo ->
-                chunkIds.add(fileInfo.fileHandle.name)
+                availableChunkIds[fileInfo.fileHandle.name] = fileInfo.size
             }
-            val availableChunkIds = chunkIds.toHashSet()
-            if (!chunksCache.areAllAvailableChunksCached(db, availableChunkIds)) {
+            if (!chunksCache.areAllAvailableChunksCached(db, availableChunkIds.keys)) {
                 cacheRepopulater.repopulate(streamKey, availableChunkIds)
             }
 
@@ -123,7 +122,7 @@ internal class Backup(
             // with its old (unreferenced) chunks eventually deleted.
             // If (one of) its chunk(s) is missing, it will count as changed and chunked again.
             duration = measure {
-                backupFiles(scanResult, availableChunkIds, backupObserver)
+                backupFiles(scanResult, availableChunkIds.keys, backupObserver)
             }
             Log.e(TAG, "Changed files backup took $duration")
         } finally {
@@ -134,7 +133,7 @@ internal class Backup(
     @Throws(IOException::class, GeneralSecurityException::class)
     private suspend fun backupFiles(
         filesResult: FileScannerResult,
-        availableChunkIds: HashSet<String>,
+        availableChunkIds: Set<String>,
         backupObserver: BackupObserver?,
     ) {
         val startTime = System.currentTimeMillis()

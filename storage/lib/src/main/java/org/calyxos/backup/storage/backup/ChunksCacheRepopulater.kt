@@ -6,11 +6,11 @@
 package org.calyxos.backup.storage.backup
 
 import android.util.Log
+import org.calyxos.backup.storage.SnapshotRetriever
 import org.calyxos.backup.storage.db.CachedChunk
 import org.calyxos.backup.storage.db.Db
-import org.calyxos.backup.storage.measure
-import org.calyxos.backup.storage.SnapshotRetriever
 import org.calyxos.backup.storage.getCurrentBackupSnapshots
+import org.calyxos.backup.storage.measure
 import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType
 import java.io.IOException
@@ -27,7 +27,7 @@ internal class ChunksCacheRepopulater(
     private val snapshotRetriever: SnapshotRetriever,
 ) {
 
-    suspend fun repopulate(streamKey: ByteArray, availableChunkIds: HashSet<String>) {
+    suspend fun repopulate(streamKey: ByteArray, availableChunkIds: Map<String, Long>) {
         Log.i(TAG, "Starting to repopulate chunks cache")
         try {
             repopulateInternal(streamKey, availableChunkIds)
@@ -40,7 +40,7 @@ internal class ChunksCacheRepopulater(
     @Throws(IOException::class)
     private suspend fun repopulateInternal(
         streamKey: ByteArray,
-        availableChunkIds: HashSet<String>,
+        availableChunkIds: Map<String, Long>,
     ) {
         val start = System.currentTimeMillis()
         val snapshots =
@@ -62,7 +62,7 @@ internal class ChunksCacheRepopulater(
         Log.i(TAG, "Repopulating chunks cache took $repopulateDuration")
 
         // delete chunks that are not references by any snapshot anymore
-        val chunksToDelete = availableChunkIds.subtract(cachedChunks.map { it.id }.toSet())
+        val chunksToDelete = availableChunkIds.keys.subtract(cachedChunks.map { it.id }.toSet())
         val deletionDuration = measure {
             chunksToDelete.forEach { chunkId ->
                 val handle = FileBackupFileType.Blob(androidId, chunkId)
@@ -74,7 +74,7 @@ internal class ChunksCacheRepopulater(
 
     private fun getCachedChunks(
         snapshots: List<BackupSnapshot>,
-        availableChunks: HashSet<String>,
+        availableChunks: Map<String, Long>,
     ): Collection<CachedChunk> {
         val chunkMap = HashMap<String, CachedChunk>()
         snapshots.forEach { snapshot ->
@@ -85,25 +85,24 @@ internal class ChunksCacheRepopulater(
             snapshot.documentFilesList.forEach { file ->
                 file.chunkIdsList.forEach { chunkId -> chunksInSnapshot.add(chunkId) }
             }
-            addCachedChunksToMap(snapshot.timeStart, availableChunks, chunkMap, chunksInSnapshot)
+            addCachedChunksToMap(snapshot, availableChunks, chunkMap, chunksInSnapshot)
         }
         return chunkMap.values
     }
 
     private fun addCachedChunksToMap(
-        snapshotTimeStamp: Long,
-        availableChunks: HashSet<String>,
+        snapshot: BackupSnapshot,
+        availableChunks: Map<String, Long>,
         chunkMap: HashMap<String, CachedChunk>,
         chunksInSnapshot: HashSet<String>,
     ) = chunksInSnapshot.forEach { chunkId ->
-        if (!availableChunks.contains(chunkId)) {
-            Log.w(TAG, "ChunkId $chunkId referenced in $snapshotTimeStamp, but not in storage.")
+        val size = availableChunks[chunkId]
+        if (size == null) {
+            Log.w(TAG, "ChunkId $chunkId referenced in ${snapshot.timeStart}, but not in storage.")
             return@forEach
         }
         val cachedChunk = chunkMap.getOrElse(chunkId) {
-            // TODO get actual chunk size (isn't used for anything critical, yet)
-            val size = 0L
-            CachedChunk(chunkId, 0, size)
+            CachedChunk(chunkId, 0, size, snapshot.version.toByte())
         }
         chunkMap[chunkId] = cachedChunk.copy(refCount = cachedChunk.refCount + 1)
     }
