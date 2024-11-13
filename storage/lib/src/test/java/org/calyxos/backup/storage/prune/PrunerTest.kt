@@ -62,7 +62,7 @@ internal class PrunerTest {
     private val pruner = Pruner(
         db = db,
         retentionManager = retentionManager,
-        storagePluginGetter = backendGetter,
+        backendGetter = backendGetter,
         androidId = androidId,
         keyManager = keyManager,
         snapshotRetriever = snapshotRetriever,

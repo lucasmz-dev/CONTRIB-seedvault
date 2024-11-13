@@ -23,6 +23,7 @@ import org.calyxos.backup.storage.SnapshotRetriever
 import org.calyxos.backup.storage.backup.Backup
 import org.calyxos.backup.storage.backup.BackupSnapshot
 import org.calyxos.backup.storage.backup.ChunksCacheRepopulater
+import org.calyxos.backup.storage.check.Checker
 import org.calyxos.backup.storage.db.Db
 import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.backup.storage.getMediaType
@@ -88,9 +89,16 @@ public class StorageBackup(
     private val pruner by lazy {
         Pruner(db, retention, pluginGetter, androidId, keyManager, snapshotRetriever)
     }
+    private val checker by lazy {
+        Checker(db, pluginGetter, snapshotRetriever, keyManager, chunksCacheRepopulater, androidId)
+    }
 
     private val backupRunning = AtomicBoolean(false)
     private val restoreRunning = AtomicBoolean(false)
+    private val checkRunning = AtomicBoolean(false)
+
+    public var checkResult: CheckResult? = null
+        private set
 
     public val uris: Set<Uri>
         @WorkerThread
@@ -243,6 +251,28 @@ public class StorageBackup(
         } finally {
             restoreRunning.set(false)
         }
+    }
+
+    public fun getBackupSize(): Long {
+        return checker.getBackupSize()
+    }
+
+    public suspend fun checkBackups(percent: Int, checkObserver: CheckObserver?) {
+        check(percent in 0..100) { "Invalid percentage: $percent" }
+        checkObserver?.onStartChecking()
+        checkResult = withContext(dispatcher) {
+            checkRunning.set(true)
+            try {
+                checker.check(percent, checkObserver)
+            } finally {
+                checkRunning.set(false)
+            }
+        }
+    }
+
+    public fun clearCheckResult() {
+        Log.i(TAG, "Clearing check result...")
+        checkResult = null
     }
 
 }

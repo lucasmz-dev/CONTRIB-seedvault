@@ -40,6 +40,9 @@ internal interface ChunksCache {
     @Query("SELECT COUNT(id) FROM CachedChunk WHERE id IN (:ids)")
     fun getNumberOfCachedChunks(ids: Collection<String>): Int
 
+    @Query("SELECT SUM(size) FROM CachedChunk WHERE ref_count > 0")
+    fun getSizeOfCachedChunks(): Long
+
     @Query("SELECT * FROM CachedChunk WHERE ref_count <= 0")
     fun getUnreferencedChunks(): List<CachedChunk>
 
