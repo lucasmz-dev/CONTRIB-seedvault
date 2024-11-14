@@ -47,6 +47,7 @@ import com.stevesoltys.seedvault.worker.AppBackupWorker
 import com.stevesoltys.seedvault.worker.AppBackupWorker.Companion.UNIQUE_WORK_NAME
 import com.stevesoltys.seedvault.worker.AppCheckerWorker
 import com.stevesoltys.seedvault.worker.BackupRequester.Companion.requestFilesAndAppBackup
+import com.stevesoltys.seedvault.worker.FileCheckerWorker
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -90,6 +91,8 @@ internal class SettingsViewModel(
 
     private val mBackupSize = MutableLiveData<Long>()
     val backupSize: LiveData<Long> = mBackupSize
+    private val mFilesBackupSize = MutableLiveData<Long>()
+    val filesBackupSize: LiveData<Long> = mFilesBackupSize
 
     internal val lastBackupTime = settingsManager.lastBackupTime
     internal val appBackupWorkInfo =
@@ -329,8 +332,18 @@ internal class SettingsViewModel(
         }
     }
 
+    fun loadFileBackupSize() {
+        viewModelScope.launch(Dispatchers.IO) {
+            mFilesBackupSize.postValue(storageBackup.getBackupSize())
+        }
+    }
+
     fun checkAppBackups(percent: Int) {
         AppCheckerWorker.scheduleNow(app, percent)
+    }
+
+    fun checkFileBackups(percent: Int) {
+        FileCheckerWorker.scheduleNow(app, percent)
     }
 
     fun onLogcatUriReceived(uri: Uri?) = viewModelScope.launch(Dispatchers.IO) {

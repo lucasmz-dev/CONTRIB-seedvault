@@ -20,10 +20,7 @@ import com.stevesoltys.seedvault.R
 import com.stevesoltys.seedvault.settings.SettingsViewModel
 import org.koin.androidx.viewmodel.ext.android.activityViewModel
 
-internal const val WARN_PERCENT = 25
-internal const val WARN_BYTES = 1024 * 1024 * 1024 // 1 GB
-
-class AppCheckFragment : Fragment() {
+class FileCheckFragment : Fragment() {
 
     private val viewModel: SettingsViewModel by activityViewModel()
     private lateinit var sliderLabel: TextView
@@ -35,12 +32,16 @@ class AppCheckFragment : Fragment() {
     ): View {
         val v = inflater.inflate(R.layout.fragment_app_check, container, false) as ScrollView
 
+        v.requireViewById<TextView>(R.id.titleView).setText(R.string.settings_file_check_title)
+        v.requireViewById<TextView>(R.id.descriptionView).setText(R.string.settings_file_check_text)
+        v.requireViewById<TextView>(R.id.introView).setText(R.string.settings_file_check_text2)
+
         val slider = v.requireViewById<Slider>(R.id.slider)
         sliderLabel = v.requireViewById(R.id.sliderLabel)
 
         // label not scrolling will be fixed in material-components 1.12.0 (next update)
         slider.setLabelFormatter { value ->
-            viewModel.backupSize.value?.let {
+            viewModel.filesBackupSize.value?.let {
                 Formatter.formatShortFileSize(context, (it * value / 100).toLong())
             } ?: "${value.toInt()}%"
         }
@@ -48,18 +49,18 @@ class AppCheckFragment : Fragment() {
             onSliderChanged(value)
         }
 
-        viewModel.backupSize.observe(viewLifecycleOwner) {
+        viewModel.filesBackupSize.observe(viewLifecycleOwner) {
             if (it != null) {
                 slider.labelBehavior = LabelFormatter.LABEL_VISIBLE
                 slider.invalidate()
                 onSliderChanged(slider.value)
             }
             // we can stop observing as the loaded size won't change again
-            viewModel.backupSize.removeObservers(viewLifecycleOwner)
+            viewModel.filesBackupSize.removeObservers(viewLifecycleOwner)
         }
 
         v.requireViewById<Button>(R.id.startButton).setOnClickListener {
-            viewModel.checkAppBackups(slider.value.toInt())
+            viewModel.checkFileBackups(slider.value.toInt())
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
         return v
@@ -67,12 +68,11 @@ class AppCheckFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        activity?.setTitle(null)
-        viewModel.loadBackupSize()
+        viewModel.loadFileBackupSize()
     }
 
     private fun onSliderChanged(value: Float) {
-        val size = viewModel.backupSize.value
+        val size = viewModel.filesBackupSize.value
         // when size is unknown, we show warning based on percent
         val showWarning = if (size == null) {
             value > WARN_PERCENT

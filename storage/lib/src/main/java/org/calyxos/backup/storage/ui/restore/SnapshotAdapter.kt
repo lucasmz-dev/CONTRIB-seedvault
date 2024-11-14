@@ -10,6 +10,8 @@ import android.text.format.DateUtils.getRelativeTimeSpanString
 import android.text.format.Formatter
 import android.view.LayoutInflater
 import android.view.View
+import android.view.View.GONE
+import android.view.View.VISIBLE
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.DiffUtil
@@ -47,6 +49,7 @@ internal class SnapshotAdapter(private val listener: SnapshotClickListener) :
     inner class SnapshotViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         private val layout: ViewGroup = view.findViewById(R.id.layout)
         private val nameView: TextView = view.findViewById(R.id.nameView)
+        private val errorView: TextView = view.findViewById(R.id.errorView)
         private val timeView: TextView = view.findViewById(R.id.timeView)
         private val sizeView: TextView = view.findViewById(R.id.sizeView)
 
@@ -58,6 +61,11 @@ internal class SnapshotAdapter(private val listener: SnapshotClickListener) :
                 layout.setOnClickListener { listener.onSnapshotClicked(item) }
             }
             nameView.text = item.snapshot?.name
+            if (item.hasError) {
+                errorView.visibility = VISIBLE
+            } else {
+                errorView.visibility = GONE
+            }
             val now = System.currentTimeMillis()
             timeView.text = getRelativeTimeSpanString(item.time, now, 0L, FORMAT_ABBREV_ALL)
             sizeView.text = item.snapshot?.size?.let { size ->

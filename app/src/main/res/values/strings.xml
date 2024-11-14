@@ -73,6 +73,9 @@
     <string name="settings_app_check_text2">Here you can run a one-time check to verify your app backup. Select how much of the app data should be downloaded for the check. The more you select, the longer it will take, yet the more reliable the check will be. This will run in the background and show a notification once the check is done.</string>
     <string name="settings_app_check_warning">Warning: Downloading large amounts of data can take a long time.</string>
     <string name="settings_app_check_button">Check backup</string>
+    <string name="settings_file_check_title">Verify files backup integrity</string>
+    <string name="settings_file_check_text">Here you can run a one-time check to verify your files backup.</string>
+    <string name="settings_file_check_text2">Select how much of the files should be downloaded for the check. The more you select, the longer it will take, yet the more reliable the check will be. This will run in the background and show a notification once the check is done.</string>
 
     <string name="settings_expert_title">Expert settings</string>
     <string name="settings_expert_logcat_title">Save app log</string>
