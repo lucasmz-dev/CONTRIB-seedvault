@@ -13,8 +13,8 @@ import org.calyxos.backup.storage.crypto.StreamCrypto
 import org.calyxos.backup.storage.db.Db
 import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.backup.storage.measure
-import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType
+import org.calyxos.seedvault.core.backends.IBackendManager
 import org.calyxos.seedvault.core.crypto.KeyManager
 import java.io.IOException
 import java.security.GeneralSecurityException
@@ -24,14 +24,14 @@ private val TAG = Pruner::class.java.simpleName
 internal class Pruner(
     private val db: Db,
     private val retentionManager: RetentionManager,
-    private val backendGetter: () -> Backend,
+    private val backendManager: IBackendManager,
     private val androidId: String,
     keyManager: KeyManager,
     private val snapshotRetriever: SnapshotRetriever,
     streamCrypto: StreamCrypto = StreamCrypto,
 ) {
 
-    private val backend get() = backendGetter()
+    private val backend get() = backendManager.backend
     private val chunksCache = db.getChunksCache()
     private val streamKey = try {
         streamCrypto.deriveStreamKey(keyManager.getMainKey())

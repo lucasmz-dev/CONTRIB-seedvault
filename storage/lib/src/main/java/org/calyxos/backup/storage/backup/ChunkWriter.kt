@@ -9,8 +9,8 @@ import android.util.Log
 import org.calyxos.backup.storage.backup.Backup.Companion.VERSION
 import org.calyxos.backup.storage.crypto.StreamCrypto
 import org.calyxos.backup.storage.db.ChunksCache
-import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType
+import org.calyxos.seedvault.core.backends.IBackendManager
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.InputStream
@@ -31,12 +31,12 @@ internal class ChunkWriter(
     private val streamCrypto: StreamCrypto,
     private val streamKey: ByteArray,
     private val chunksCache: ChunksCache,
-    private val backendGetter: () -> Backend,
+    private val backendManager: IBackendManager,
     private val androidId: String,
     private val bufferSize: Int = DEFAULT_BUFFER_SIZE,
 ) {
 
-    private val backend get() = backendGetter()
+    private val backend get() = backendManager.backend
     private val buffer = ByteArray(bufferSize)
 
     @Throws(IOException::class, GeneralSecurityException::class)

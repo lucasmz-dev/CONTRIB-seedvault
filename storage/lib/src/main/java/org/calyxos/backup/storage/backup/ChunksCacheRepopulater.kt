@@ -11,8 +11,8 @@ import org.calyxos.backup.storage.db.CachedChunk
 import org.calyxos.backup.storage.db.Db
 import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.backup.storage.measure
-import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType
+import org.calyxos.seedvault.core.backends.IBackendManager
 import java.io.IOException
 import java.security.GeneralSecurityException
 import kotlin.time.DurationUnit.MILLISECONDS
@@ -22,10 +22,11 @@ private const val TAG = "ChunksCacheRepopulater"
 
 internal class ChunksCacheRepopulater(
     private val db: Db,
-    private val storagePlugin: () -> Backend,
+    private val backendManager: IBackendManager,
     private val androidId: String,
     private val snapshotRetriever: SnapshotRetriever,
 ) {
+    private val backend get() = backendManager.backend
 
     suspend fun repopulate(streamKey: ByteArray, availableChunkIds: Map<String, Long>) {
         Log.i(TAG, "Starting to repopulate chunks cache")
@@ -43,8 +44,7 @@ internal class ChunksCacheRepopulater(
         availableChunkIds: Map<String, Long>,
     ) {
         val start = System.currentTimeMillis()
-        val snapshots =
-            storagePlugin().getCurrentBackupSnapshots(androidId).mapNotNull { storedSnapshot ->
+        val snapshots = backend.getCurrentBackupSnapshots(androidId).mapNotNull { storedSnapshot ->
                 try {
                     snapshotRetriever.getSnapshot(streamKey, storedSnapshot)
                 } catch (e: GeneralSecurityException) {
@@ -66,7 +66,7 @@ internal class ChunksCacheRepopulater(
         val deletionDuration = measure {
             chunksToDelete.forEach { chunkId ->
                 val handle = FileBackupFileType.Blob(androidId, chunkId)
-                storagePlugin().remove(handle)
+                backend.remove(handle)
             }
         }
         Log.i(TAG, "Deleting ${chunksToDelete.size} chunks took $deletionDuration")

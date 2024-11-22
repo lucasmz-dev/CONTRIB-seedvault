@@ -22,8 +22,8 @@ import org.calyxos.backup.storage.crypto.ChunkCrypto
 import org.calyxos.backup.storage.crypto.StreamCrypto
 import org.calyxos.backup.storage.db.Db
 import org.calyxos.backup.storage.restore.readVersion
-import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType
+import org.calyxos.seedvault.core.backends.IBackendManager
 import org.calyxos.seedvault.core.backends.TopLevelFolder
 import org.calyxos.seedvault.core.crypto.KeyManager
 import org.calyxos.seedvault.core.toHexString
@@ -41,7 +41,7 @@ private val TAG = Checker::class.simpleName
 
 internal class Checker(
     private val db: Db,
-    private val backendGetter: () -> Backend,
+    private val backendManager: IBackendManager,
     private val snapshotRetriever: SnapshotRetriever,
     private val keyManager: KeyManager,
     private val cacheRepopulater: ChunksCacheRepopulater,
@@ -50,11 +50,10 @@ internal class Checker(
     private val chunkCrypto: ChunkCrypto = ChunkCrypto,
 ) {
 
-    private val backend get() = backendGetter()
+    private val backend get() = backendManager.backend
     private val concurrencyLimit: Int
         get() {
-            // TODO get maxConcurrent depending on BackendProperties
-            val maxConcurrent = Runtime.getRuntime().availableProcessors()
+            val maxConcurrent = if (backendManager.requiresNetwork) 3 else 42
             return min(Runtime.getRuntime().availableProcessors(), maxConcurrent)
         }
 
@@ -179,22 +178,22 @@ internal class Checker(
         val topLevelFolder = TopLevelFolder.fromAndroidId(androidId)
         val storedSnapshots = mutableListOf<StoredSnapshot>()
         val availableChunkIds = mutableMapOf<String, Long>()
-            backend.list(
-                topLevelFolder,
-                FileBackupFileType.Snapshot::class,
-                FileBackupFileType.Blob::class,
-            ) { fileInfo ->
-                when (fileInfo.fileHandle) {
-                    is FileBackupFileType.Snapshot -> {
-                        val handle = fileInfo.fileHandle as FileBackupFileType.Snapshot
-                        val storedSnapshot = StoredSnapshot(handle.topLevelFolder.name, handle.time)
-                        storedSnapshots.add(storedSnapshot)
-                    }
-                    is FileBackupFileType.Blob ->
-                        availableChunkIds[fileInfo.fileHandle.name] = fileInfo.size
-                    else -> error("Unexpected FileHandle: $fileInfo")
+        backend.list(
+            topLevelFolder,
+            FileBackupFileType.Snapshot::class,
+            FileBackupFileType.Blob::class,
+        ) { fileInfo ->
+            when (fileInfo.fileHandle) {
+                is FileBackupFileType.Snapshot -> {
+                    val handle = fileInfo.fileHandle as FileBackupFileType.Snapshot
+                    val storedSnapshot = StoredSnapshot(handle.topLevelFolder.name, handle.time)
+                    storedSnapshots.add(storedSnapshot)
                 }
+                is FileBackupFileType.Blob ->
+                    availableChunkIds[fileInfo.fileHandle.name] = fileInfo.size
+                else -> error("Unexpected FileHandle: $fileInfo")
             }
+        }
         // ensure our local ChunksCache is up to date
         if (!db.getChunksCache().areAllAvailableChunksCached(db, availableChunkIds.keys)) {
             Log.i(TAG, "Not all available chunks cached, rebuild local cache...")

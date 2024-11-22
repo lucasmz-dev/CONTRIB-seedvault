@@ -18,8 +18,8 @@ import org.calyxos.backup.storage.db.Db
 import org.calyxos.backup.storage.measure
 import org.calyxos.backup.storage.scanner.FileScanner
 import org.calyxos.backup.storage.scanner.FileScannerResult
-import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType
+import org.calyxos.seedvault.core.backends.IBackendManager
 import org.calyxos.seedvault.core.backends.TopLevelFolder
 import org.calyxos.seedvault.core.crypto.KeyManager
 import java.io.IOException
@@ -44,7 +44,7 @@ internal class Backup(
     private val context: Context,
     private val db: Db,
     private val fileScanner: FileScanner,
-    private val backendGetter: () -> Backend,
+    private val backendManager: IBackendManager,
     private val androidId: String,
     keyManager: KeyManager,
     private val cacheRepopulater: ChunksCacheRepopulater,
@@ -60,7 +60,7 @@ internal class Backup(
     }
 
     private val contentResolver = context.contentResolver
-    private val backend get() = backendGetter()
+    private val backend get() = backendManager.backend
     private val filesCache = db.getFilesCache()
     private val chunksCache = db.getChunksCache()
 
@@ -75,7 +75,7 @@ internal class Backup(
         throw AssertionError(e)
     }
     private val chunkWriter =
-        ChunkWriter(streamCrypto, streamKey, chunksCache, backendGetter, androidId)
+        ChunkWriter(streamCrypto, streamKey, chunksCache, backendManager, androidId)
     private val hasMediaAccessPerm =
         context.checkSelfPermission(ACCESS_MEDIA_LOCATION) == PERMISSION_GRANTED
     private val fileBackup = FileBackup(

@@ -24,6 +24,7 @@ import org.calyxos.backup.storage.getRandomString
 import org.calyxos.backup.storage.mockLog
 import org.calyxos.seedvault.core.backends.Backend
 import org.calyxos.seedvault.core.backends.FileBackupFileType.Blob
+import org.calyxos.seedvault.core.backends.IBackendManager
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -33,14 +34,14 @@ internal class ChunksCacheRepopulaterTest {
 
     private val db: Db = mockk()
     private val chunksCache: ChunksCache = mockk()
-    private val backendGetter: () -> Backend = mockk()
+    private val backendManager: IBackendManager = mockk()
     private val androidId: String = getRandomString()
     private val backend: Backend = mockk()
     private val snapshotRetriever: SnapshotRetriever = mockk()
     private val streamKey = "This is a backup key for testing".toByteArray()
     private val cacheRepopulater = ChunksCacheRepopulater(
         db = db,
-        storagePlugin = backendGetter,
+        backendManager = backendManager,
         androidId = androidId,
         snapshotRetriever = snapshotRetriever,
     )
@@ -48,7 +49,7 @@ internal class ChunksCacheRepopulaterTest {
     init {
         mockLog()
         mockkStatic("org.calyxos.backup.storage.SnapshotRetrieverKt")
-        every { backendGetter() } returns backend
+        every { backendManager.backend } returns backend
         every { db.getChunksCache() } returns chunksCache
     }
 
