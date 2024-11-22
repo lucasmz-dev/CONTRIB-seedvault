@@ -25,6 +25,7 @@ import org.calyxos.backup.storage.restore.readVersion
 import org.calyxos.seedvault.core.backends.FileBackupFileType
 import org.calyxos.seedvault.core.backends.IBackendManager
 import org.calyxos.seedvault.core.backends.TopLevelFolder
+import org.calyxos.seedvault.core.crypto.CoreCrypto
 import org.calyxos.seedvault.core.crypto.KeyManager
 import org.calyxos.seedvault.core.toHexString
 import java.io.IOException
@@ -102,7 +103,8 @@ internal class Checker(
                 "${missingChunkIds.size} missing."
         )
         // get sample of referenced blobs/chunks
-        val (blobs, sampleSize) = checkBlobSample(referencedChunkIds, percent)
+        val (blobs, sampleSize) =
+            checkBlobSample(referencedChunkIds, snapshotInfo.suspiciousChunkIds, percent)
 
         // check chunks concurrently
         val semaphore = Semaphore(concurrencyLimit)
@@ -172,6 +174,11 @@ internal class Checker(
         val storedSnapshotSize: Int,
         val snapshots: List<BackupSnapshot>,
         val availableChunkIds: Set<String>,
+        /**
+         * Chunk IDs that we should check with priority,
+         * because we noticed something off about them, e.g. their file size isn't as expected.
+         */
+        val suspiciousChunkIds: Set<String>,
     )
 
     private suspend fun getSnapshotsAndAvailableChunks(): SnapshotInfo {
@@ -195,7 +202,19 @@ internal class Checker(
             }
         }
         // ensure our local ChunksCache is up to date
-        if (!db.getChunksCache().areAllAvailableChunksCached(db, availableChunkIds.keys)) {
+        val chunksCache = db.getChunksCache()
+        val suspiciousChunkIds = mutableSetOf<String>()
+        if (chunksCache.areAllAvailableChunksCached(db, availableChunkIds.keys)) {
+            // cache is OK, so we can verify that file sizes are still as expected
+            availableChunkIds.forEach { (chunkId, size) ->
+                val expectedSize = 1 + // version byte plus ciphertext size
+                    CoreCrypto.expectedCiphertextSize(chunksCache.get(chunkId)?.size ?: 0L)
+                if (size != expectedSize) {
+                    Log.i(TAG, "Expected size $expectedSize, but chunk had $size: $chunkId")
+                    suspiciousChunkIds.add(chunkId)
+                }
+            }
+        } else {
             Log.i(TAG, "Not all available chunks cached, rebuild local cache...")
             cacheRepopulater.repopulate(streamKey, availableChunkIds)
         }
@@ -213,17 +232,20 @@ internal class Checker(
             storedSnapshotSize = storedSnapshots.size,
             snapshots = snapshots,
             availableChunkIds = availableChunkIds.keys,
+            suspiciousChunkIds = suspiciousChunkIds,
         )
     }
 
     private fun checkBlobSample(
         referencedChunkIds: Set<String>,
+        suspiciousChunkIds: Set<String>,
         percent: Int,
     ): Pair<List<String>, Long> {
         val size = getBackupSize()
         val targetSize = (size * (percent.toDouble() / 100)).roundToLong()
         val blobSample = mutableListOf<String>()
-        val iterator = referencedChunkIds.shuffled().iterator()
+        val priorityChunksIds = referencedChunkIds.intersect(suspiciousChunkIds)
+        val iterator = (priorityChunksIds + referencedChunkIds.shuffled()).iterator()
         var currentSize = 0L
         while (currentSize < targetSize && iterator.hasNext()) {
             val chunkId = iterator.next()
