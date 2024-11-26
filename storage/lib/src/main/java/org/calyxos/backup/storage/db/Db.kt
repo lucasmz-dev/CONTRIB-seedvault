@@ -7,6 +7,7 @@ package org.calyxos.backup.storage.db
 
 import android.content.Context
 import android.net.Uri
+import androidx.room.AutoMigration
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -16,9 +17,12 @@ import androidx.room.TypeConverters
 internal const val DB_MAX_OP = 750
 
 @Database(
-    version = 1,
+    version = 2,
     exportSchema = true,
     entities = [StoredUri::class, CachedFile::class, CachedChunk::class],
+    autoMigrations = [
+        AutoMigration(1, 2),
+    ],
 )
 @TypeConverters(Converters::class)
 internal abstract class Db : RoomDatabase() {

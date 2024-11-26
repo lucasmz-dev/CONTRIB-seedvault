@@ -130,9 +130,8 @@ internal class Checker(
                             chunkSize.toLong()
                         } catch (e: Exception) {
                             Log.e(TAG, "Error checking chunk $chunkId: ", e)
-                            // TODO we could try differentiating transient backend issues
                             badChunks.add(chunkId)
-                            db.getChunksCache().get(chunkId)?.size ?: 0L
+                            db.getChunksCache().getEvenIfCorrupted(chunkId)?.size ?: 0L
                         }
                     }
                     // keep track of how much we checked and for how long
@@ -207,8 +206,14 @@ internal class Checker(
         if (chunksCache.areAllAvailableChunksCached(db, availableChunkIds.keys)) {
             // cache is OK, so we can verify that file sizes are still as expected
             availableChunkIds.forEach { (chunkId, size) ->
-                val expectedSize = 1 + // version byte plus ciphertext size
-                    CoreCrypto.expectedCiphertextSize(chunksCache.get(chunkId)?.size ?: 0L)
+                val chunk = chunksCache.getEvenIfCorrupted(chunkId)
+                if (chunk?.corrupted == true) {
+                    Log.i(TAG, "Chunk ${chunk.id} known to be corrupted.")
+                    return@forEach
+                }
+                val plaintextSize = chunk?.size ?: 0L
+                // expectedSize is one version byte plus ciphertext size
+                val expectedSize = 1 + CoreCrypto.expectedCiphertextSize(plaintextSize)
                 if (size != expectedSize) {
                     Log.i(TAG, "Expected size $expectedSize, but chunk had $size: $chunkId")
                     suspiciousChunkIds.add(chunkId)
@@ -251,14 +256,14 @@ internal class Checker(
             val chunkId = iterator.next()
             blobSample.add(chunkId)
             // we ensure cache consistency above, so chunks not in cache don't exist anymore
-            currentSize += db.getChunksCache().get(chunkId)?.size ?: 0L
+            currentSize += db.getChunksCache().getEvenIfCorrupted(chunkId)?.size ?: 0L
         }
         return Pair(blobSample, currentSize)
     }
 
     private suspend fun checkChunk(chunkId: String, chunkIdMac: Mac): Pair<String, Int> {
         val handle = FileBackupFileType.Blob(androidId, chunkId)
-        val cachedChunk = db.getChunksCache().get(chunkId)
+        val cachedChunk = db.getChunksCache().getEvenIfCorrupted(chunkId)
         // if chunk is not in DB, it isn't available on backend, so missing version doesn't matter
         val version = cachedChunk?.version ?: VERSION
         return backend.load(handle).use { inputStream ->

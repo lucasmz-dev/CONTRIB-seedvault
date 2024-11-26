@@ -12,6 +12,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -125,6 +126,34 @@ internal class ChunksCacheTest {
         assertThat(chunksCache.get("newId1"), equalTo(newChunks[0]))
         assertThat(chunksCache.get("newId2"), equalTo(newChunks[1]))
         assertThat(chunksCache.get("newId3"), equalTo(newChunks[2]))
+    }
+
+    @Test
+    fun testCorruption() {
+        // chunk1 and chunk3 are corrupted, need to be rewritten
+        chunksCache.markCorrupted(chunk1.id)
+        chunksCache.markCorrupted(chunk3.id)
+
+        // only chunk2 gets returned in direct queries
+        assertEquals(null, chunksCache.get(chunk1.id))
+        assertEquals(chunk2, chunksCache.get(chunk2.id))
+        assertEquals(null, chunksCache.get(chunk3.id))
+
+        // all chunks still get returned by getEvenIfCorrupted() query
+        assertEquals(chunk1.copy(corrupted = true), chunksCache.getEvenIfCorrupted(chunk1.id))
+        assertEquals(chunk2, chunksCache.getEvenIfCorrupted(chunk2.id))
+        assertEquals(chunk3.copy(corrupted = true), chunksCache.getEvenIfCorrupted(chunk3.id))
+
+        // getNumberOfCachedChunks returns corrupted chunks as well
+        val availableIds = listOf(chunk1.id, chunk2.id, chunk3.id)
+        assertEquals(3, chunksCache.getNumberOfCachedChunks(availableIds))
+        assertTrue(chunksCache.areAllAvailableChunksCached(db, availableIds))
+
+        // chunk1 gets re-uploaded and thus fixed
+        chunksCache.insert(chunk1)
+
+        // now it gets returned in query
+        assertEquals(chunk1, chunksCache.get(chunk1.id))
     }
 
 }
