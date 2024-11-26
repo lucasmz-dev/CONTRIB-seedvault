@@ -5,15 +5,17 @@
 
 package org.calyxos.backup.storage.db
 
+import android.util.Log
 import androidx.annotation.VisibleForTesting
 import androidx.room.ColumnInfo
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Entity
 import androidx.room.Insert
-import androidx.room.OnConflictStrategy.Companion.REPLACE
+import androidx.room.OnConflictStrategy.Companion.IGNORE
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Transaction
 import org.calyxos.backup.storage.backup.Backup
 
 @Entity
@@ -32,10 +34,15 @@ internal data class CachedChunk(
 
 @Dao
 internal interface ChunksCache {
-    @Insert(onConflict = REPLACE)
-    fun insert(chunk: CachedChunk)
+    @VisibleForTesting
+    @Insert(onConflict = IGNORE)
+    fun insertInternal(chunk: CachedChunk): Long
 
-    @Insert(onConflict = REPLACE)
+    /**
+     * Should only get used by [clearAndRepopulate].
+     */
+    @Insert
+    @VisibleForTesting
     fun insert(chunks: Collection<CachedChunk>)
 
     /**
@@ -71,23 +78,44 @@ internal interface ChunksCache {
     @Query("UPDATE CachedChunk SET corrupted = 1 WHERE id == :id")
     fun markCorrupted(id: String)
 
+    @VisibleForTesting
+    @Query("UPDATE CachedChunk SET corrupted = 0 WHERE id == :id")
+    fun unmarkCorrupted(id: String)
+
+    @Query("SELECT COUNT(*) FROM CachedChunk WHERE id IN (:ids) AND corrupted = 1")
+    fun hasCorruptedChunks(ids: Collection<String>): Boolean
+
     @Delete
     fun deleteChunks(chunks: List<CachedChunk>)
 
     @Query("DELETE FROM CachedChunk")
     fun clear()
 
-    fun areAllAvailableChunksCached(db: Db, availableChunks: Collection<String>): Boolean {
-        return db.runInTransaction<Boolean> {
-            availableChunks.chunked(DB_MAX_OP).forEach { availableChunkIds ->
-                val num = getNumberOfCachedChunks(availableChunkIds)
-                if (availableChunkIds.size != num) return@runInTransaction false
+    @Transaction
+    fun insert(chunk: CachedChunk) {
+        val result = insertInternal(chunk)
+        if (result < 0) {
+            Log.d("ChunksCache", "Chunk ${chunk.id} already existed in DB.")
+            val existingChunk = getEvenIfCorrupted(chunk.id) ?: error("No chunk ${chunk.id} in DB")
+            check(existingChunk.corrupted) { "Chunk ${chunk.id} wasn't marked as corrupted." }
+            if (existingChunk.size != chunk.size) {
+                Log.w("ChunksCache", "New chunk size ${chunk.size}, expected ${existingChunk.size}")
             }
-            return@runInTransaction true
+            unmarkCorrupted(chunk.id)
         }
     }
 
-    fun clearAndRepopulate(db: Db, chunks: Collection<CachedChunk>) = db.runInTransaction {
+    @Transaction
+    fun areAllAvailableChunksCached(availableChunks: Collection<String>): Boolean {
+        availableChunks.chunked(DB_MAX_OP).forEach { availableChunkIds ->
+            val num = getNumberOfCachedChunks(availableChunkIds)
+            if (availableChunkIds.size != num) return false
+        }
+        return true
+    }
+
+    @Transaction
+    fun clearAndRepopulate(chunks: Collection<CachedChunk>) {
         clear()
         chunks.chunked(DB_MAX_OP).forEach {
             insert(it)

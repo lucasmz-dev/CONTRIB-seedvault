@@ -56,7 +56,8 @@ internal class SmallFileBackupIntegrationTest {
         chunkWriter = chunkWriter,
     )
 
-    private val smallFileBackup = SmallFileBackup(contentResolver, filesCache, zipChunker, true)
+    private val smallFileBackup =
+        SmallFileBackup(contentResolver, filesCache, chunksCache, zipChunker, true)
 
     init {
         mockLog()
@@ -96,6 +97,7 @@ internal class SmallFileBackupIntegrationTest {
 
         every { mac.doFinal(any<ByteArray>()) } returns chunkId
         every { chunksCache.get(any()) } returns null
+        every { chunksCache.hasCorruptedChunks(any()) } returns false
         coEvery { backend.save(any()) } returns outputStream2
         every {
             chunksCache.insert(match<CachedChunk> { cachedChunk ->

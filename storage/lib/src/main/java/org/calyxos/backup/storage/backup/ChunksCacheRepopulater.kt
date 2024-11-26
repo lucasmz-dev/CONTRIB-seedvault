@@ -8,7 +8,7 @@ package org.calyxos.backup.storage.backup
 import android.util.Log
 import org.calyxos.backup.storage.SnapshotRetriever
 import org.calyxos.backup.storage.db.CachedChunk
-import org.calyxos.backup.storage.db.Db
+import org.calyxos.backup.storage.db.ChunksCache
 import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.backup.storage.measure
 import org.calyxos.seedvault.core.backends.FileBackupFileType
@@ -21,7 +21,7 @@ import kotlin.time.toDuration
 private const val TAG = "ChunksCacheRepopulater"
 
 internal class ChunksCacheRepopulater(
-    private val db: Db,
+    private val chunksCache: ChunksCache,
     private val backendManager: IBackendManager,
     private val androidId: String,
     private val snapshotRetriever: SnapshotRetriever,
@@ -57,7 +57,7 @@ internal class ChunksCacheRepopulater(
 
         val cachedChunks = getCachedChunks(snapshots, availableChunkIds)
         val repopulateDuration = measure {
-            db.getChunksCache().clearAndRepopulate(db, cachedChunks)
+            chunksCache.clearAndRepopulate(cachedChunks)
         }
         Log.i(TAG, "Repopulating chunks cache took $repopulateDuration")
 

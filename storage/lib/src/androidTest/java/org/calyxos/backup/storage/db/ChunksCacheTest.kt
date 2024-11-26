@@ -101,13 +101,13 @@ internal class ChunksCacheTest {
 
     @Test
     fun testAreAllAvailableChunksCached() {
-        assertTrue(chunksCache.areAllAvailableChunksCached(db, listOf()))
-        assertTrue(chunksCache.areAllAvailableChunksCached(db, listOf("id1")))
-        assertTrue(chunksCache.areAllAvailableChunksCached(db, listOf("id1", "id2")))
-        assertTrue(chunksCache.areAllAvailableChunksCached(db, listOf("id1", "id2", "id3")))
-        assertTrue(chunksCache.areAllAvailableChunksCached(db, listOf("id1", "id2", "id3")))
-        assertFalse(chunksCache.areAllAvailableChunksCached(db, listOf("id1", "id2", "id3", "id4")))
-        assertFalse(chunksCache.areAllAvailableChunksCached(db, listOf("foo", "bar")))
+        assertTrue(chunksCache.areAllAvailableChunksCached(listOf()))
+        assertTrue(chunksCache.areAllAvailableChunksCached(listOf("id1")))
+        assertTrue(chunksCache.areAllAvailableChunksCached(listOf("id1", "id2")))
+        assertTrue(chunksCache.areAllAvailableChunksCached(listOf("id1", "id2", "id3")))
+        assertTrue(chunksCache.areAllAvailableChunksCached(listOf("id1", "id2", "id3")))
+        assertFalse(chunksCache.areAllAvailableChunksCached(listOf("id1", "id2", "id3", "id4")))
+        assertFalse(chunksCache.areAllAvailableChunksCached(listOf("foo", "bar")))
     }
 
     @Test
@@ -117,7 +117,7 @@ internal class ChunksCacheTest {
             chunk2.copy(id = "newId2", refCount = 6),
             chunk3.copy(id = "newId3", refCount = 8)
         )
-        chunksCache.clearAndRepopulate(db, newChunks)
+        chunksCache.clearAndRepopulate(newChunks)
 
         assertNull(chunksCache.get("id1"))
         assertNull(chunksCache.get("id2"))
@@ -147,13 +147,23 @@ internal class ChunksCacheTest {
         // getNumberOfCachedChunks returns corrupted chunks as well
         val availableIds = listOf(chunk1.id, chunk2.id, chunk3.id)
         assertEquals(3, chunksCache.getNumberOfCachedChunks(availableIds))
-        assertTrue(chunksCache.areAllAvailableChunksCached(db, availableIds))
+        assertTrue(chunksCache.areAllAvailableChunksCached(availableIds))
 
-        // chunk1 gets re-uploaded and thus fixed
-        chunksCache.insert(chunk1)
+        // hasCorruptedChunks() returns true, if the given list includes corrupted chunks
+        assertTrue(chunksCache.hasCorruptedChunks(listOf("foo", "bar", chunk1.id)))
+        assertFalse(chunksCache.hasCorruptedChunks(listOf("foo", "bar", chunk2.id)))
+        assertTrue(chunksCache.hasCorruptedChunks(listOf("foo", "bar", chunk3.id)))
+        assertFalse(chunksCache.hasCorruptedChunks(emptyList()))
 
-        // now it gets returned in query
+        // chunk1 gets re-uploaded and thus fixed (new chunks always have 0 refCount)
+        chunksCache.insert(chunk1.copy(refCount = 0))
+
+        // now it gets returned in query (with unchanged refCount and not corrupted)
         assertEquals(chunk1, chunksCache.get(chunk1.id))
+        assertFalse(chunksCache.get(chunk1.id)!!.corrupted)
+
+        // marking something not in DB as corrupted isn't fatal
+        chunksCache.markCorrupted("foo")
     }
 
 }

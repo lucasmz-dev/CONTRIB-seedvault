@@ -138,7 +138,7 @@ internal class BackupRestoreTest {
         val availableChunks = emptyList<String>()
         coEvery { backend.list(any(), Blob::class, callback = any()) } just Runs
         every {
-            chunksCache.areAllAvailableChunksCached(db, availableChunks.toHashSet())
+            chunksCache.areAllAvailableChunksCached(availableChunks.toHashSet())
         } returns true
         every { fileScanner.getFiles() } returns scannedFiles
         every { filesCache.getByUri(any()) } returns null // nothing is cached, all is new
@@ -167,6 +167,7 @@ internal class BackupRestoreTest {
         coEvery { backend.save(any<Blob>()) } returnsMany listOf(
             zipChunkOutputStream, mOutputStream, dOutputStream
         )
+        every { chunksCache.hasCorruptedChunks(any()) } returns false
         every { chunksCache.insert(any<CachedChunk>()) } just Runs
         every { filesCache.upsert(capture(cachedFiles)) } just Runs
 
@@ -282,7 +283,7 @@ internal class BackupRestoreTest {
         val availableChunks = emptyList<String>()
         coEvery { backend.list(any(), Blob::class, callback = any()) } just Runs
         every {
-            chunksCache.areAllAvailableChunksCached(db, availableChunks.toHashSet())
+            chunksCache.areAllAvailableChunksCached(availableChunks.toHashSet())
         } returns true
         every { fileScanner.getFiles() } returns scannedFiles
         every { filesCache.getByUri(any()) } returns null // nothing is cached, all is new
@@ -353,6 +354,7 @@ internal class BackupRestoreTest {
             )
         } returns id40d00c
 
+        every { chunksCache.hasCorruptedChunks(any()) } returns false
         every { chunksCache.insert(any<CachedChunk>()) } just Runs
         every { filesCache.upsert(capture(cachedFiles)) } just Runs
 
@@ -500,7 +502,7 @@ internal class BackupRestoreTest {
         every { backendManagerNew.backend } returnsMany listOf(backend1, backend2)
 
         coEvery { backend1.list(any(), Blob::class, callback = any()) } just Runs
-        every { chunksCache.areAllAvailableChunksCached(db, emptySet()) } returns true
+        every { chunksCache.areAllAvailableChunksCached(emptySet()) } returns true
         every { fileScanner.getFiles() } returns FileScannerResult(emptyList(), emptyList())
         every { filesCache.getByUri(any()) } returns null // nothing is cached, all is new
 

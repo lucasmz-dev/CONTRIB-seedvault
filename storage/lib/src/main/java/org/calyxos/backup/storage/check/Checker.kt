@@ -32,7 +32,6 @@ import java.io.IOException
 import java.security.GeneralSecurityException
 import java.util.concurrent.ConcurrentSkipListSet
 import java.util.concurrent.atomic.AtomicLong
-import javax.crypto.Mac
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -64,9 +63,13 @@ internal class Checker(
         } catch (e: GeneralSecurityException) {
             throw AssertionError(e)
         }
+    private val chunkIdKey by lazy {
+        ChunkCrypto.deriveChunkIdKey(keyManager.getMainKey())
+    }
     private val mac
         get() = try {
-            chunkCrypto.getMac(ChunkCrypto.deriveChunkIdKey(keyManager.getMainKey()))
+            // each request gets a fresh MAC to avoid concurrent usage of same MAC
+            chunkCrypto.getMac(chunkIdKey)
         } catch (e: GeneralSecurityException) {
             throw AssertionError(e)
         }
@@ -112,7 +115,6 @@ internal class Checker(
         val badChunks = ConcurrentSkipListSet<String>()
         val lastNotification = AtomicLong()
         val startTime = System.currentTimeMillis()
-        val chunkIdMac = mac // keep a copy of the mac
         coroutineScope {
             blobs.forEach { chunkId ->
                 // launch a new co-routine for each blob to check
@@ -120,9 +122,12 @@ internal class Checker(
                     // suspend here until we get a permit from the semaphore (there's free workers)
                     val chunkSize = semaphore.withPermit {
                         try {
-                            val (readId, chunkSize) = checkChunk(chunkId, chunkIdMac)
+                            val (readId, chunkSize) = checkChunk(chunkId)
                             if (readId != chunkId) {
                                 Log.w(TAG, "Wrong chunkId $readId for $chunkId")
+                                // we could read the chunk,
+                                // but its HMAC is wrong, so mark it as corrupted
+                                db.getChunksCache().markCorrupted(chunkId)
                                 badChunks.add(chunkId)
                             } else {
                                 Log.i(TAG, "Checked chunkId $chunkId")
@@ -130,6 +135,9 @@ internal class Checker(
                             chunkSize.toLong()
                         } catch (e: Exception) {
                             Log.e(TAG, "Error checking chunk $chunkId: ", e)
+                            // TODO markCorrupted(chunkId) only for permanent exceptions
+                            //  to prevent unnecessary re-upload
+                            db.getChunksCache().markCorrupted(chunkId)
                             badChunks.add(chunkId)
                             db.getChunksCache().getEvenIfCorrupted(chunkId)?.size ?: 0L
                         }
@@ -203,7 +211,7 @@ internal class Checker(
         // ensure our local ChunksCache is up to date
         val chunksCache = db.getChunksCache()
         val suspiciousChunkIds = mutableSetOf<String>()
-        if (chunksCache.areAllAvailableChunksCached(db, availableChunkIds.keys)) {
+        if (chunksCache.areAllAvailableChunksCached(availableChunkIds.keys)) {
             // cache is OK, so we can verify that file sizes are still as expected
             availableChunkIds.forEach { (chunkId, size) ->
                 val chunk = chunksCache.getEvenIfCorrupted(chunkId)
@@ -261,7 +269,7 @@ internal class Checker(
         return Pair(blobSample, currentSize)
     }
 
-    private suspend fun checkChunk(chunkId: String, chunkIdMac: Mac): Pair<String, Int> {
+    private suspend fun checkChunk(chunkId: String): Pair<String, Int> {
         val handle = FileBackupFileType.Blob(androidId, chunkId)
         val cachedChunk = db.getChunksCache().getEvenIfCorrupted(chunkId)
         // if chunk is not in DB, it isn't available on backend, so missing version doesn't matter
@@ -271,7 +279,7 @@ internal class Checker(
             val ad = streamCrypto.getAssociatedDataForChunk(chunkId, version)
             streamCrypto.newDecryptingStream(streamKey, inputStream, ad).use { decryptedStream ->
                 val bytes = decryptedStream.readAllBytes()
-                Pair(chunkIdMac.doFinal(bytes).toHexString(), bytes.size)
+                Pair(mac.doFinal(bytes).toHexString(), bytes.size)
             }
         }
     }

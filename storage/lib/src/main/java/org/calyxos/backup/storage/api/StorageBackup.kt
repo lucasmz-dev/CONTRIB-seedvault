@@ -63,7 +63,7 @@ public class StorageBackup(
     private val mediaScanner by lazy { MediaScanner(context) }
     private val snapshotRetriever = SnapshotRetriever(backendManager)
     private val chunksCacheRepopulater = ChunksCacheRepopulater(
-        db = db,
+        chunksCache = db.getChunksCache(),
         backendManager = backendManager,
         androidId = androidId,
         snapshotRetriever = snapshotRetriever,

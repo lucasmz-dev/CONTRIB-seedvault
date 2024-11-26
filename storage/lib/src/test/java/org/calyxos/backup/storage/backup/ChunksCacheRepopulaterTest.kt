@@ -18,7 +18,6 @@ import org.calyxos.backup.storage.SnapshotRetriever
 import org.calyxos.backup.storage.api.StoredSnapshot
 import org.calyxos.backup.storage.db.CachedChunk
 import org.calyxos.backup.storage.db.ChunksCache
-import org.calyxos.backup.storage.db.Db
 import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.backup.storage.getRandomString
 import org.calyxos.backup.storage.mockLog
@@ -32,7 +31,6 @@ import kotlin.random.Random
 
 internal class ChunksCacheRepopulaterTest {
 
-    private val db: Db = mockk()
     private val chunksCache: ChunksCache = mockk()
     private val backendManager: IBackendManager = mockk()
     private val androidId: String = getRandomString()
@@ -40,7 +38,7 @@ internal class ChunksCacheRepopulaterTest {
     private val snapshotRetriever: SnapshotRetriever = mockk()
     private val streamKey = "This is a backup key for testing".toByteArray()
     private val cacheRepopulater = ChunksCacheRepopulater(
-        db = db,
+        chunksCache = chunksCache,
         backendManager = backendManager,
         androidId = androidId,
         snapshotRetriever = snapshotRetriever,
@@ -50,7 +48,6 @@ internal class ChunksCacheRepopulaterTest {
         mockLog()
         mockkStatic("org.calyxos.backup.storage.SnapshotRetrieverKt")
         every { backendManager.backend } returns backend
-        every { db.getChunksCache() } returns chunksCache
     }
 
     @Test
@@ -91,7 +88,7 @@ internal class ChunksCacheRepopulaterTest {
         coEvery {
             snapshotRetriever.getSnapshot(streamKey, storedSnapshot2)
         } returns snapshot2
-        every { chunksCache.clearAndRepopulate(db, capture(cachedChunksSlot)) } just Runs
+        every { chunksCache.clearAndRepopulate(capture(cachedChunksSlot)) } just Runs
         coEvery { backend.remove(Blob(androidId, chunk3)) } just Runs
 
         cacheRepopulater.repopulate(streamKey, availableChunkIds)

@@ -82,6 +82,7 @@ internal class Backup(
         contentResolver = contentResolver,
         hasMediaAccessPerm = hasMediaAccessPerm,
         filesCache = filesCache,
+        chunksCache = chunksCache,
         chunker = Chunker(mac, chunkSizeMax),
         chunkWriter = chunkWriter,
     )
@@ -89,6 +90,7 @@ internal class Backup(
         contentResolver = context.contentResolver,
         hasMediaAccessPerm = hasMediaAccessPerm,
         filesCache = filesCache,
+        chunksCache = chunksCache,
         zipChunker = ZipChunker(mac, chunkWriter),
     )
 
@@ -104,7 +106,7 @@ internal class Backup(
             backend.list(topLevelFolder, FileBackupFileType.Blob::class) { fileInfo ->
                 availableChunkIds[fileInfo.fileHandle.name] = fileInfo.size
             }
-            if (!chunksCache.areAllAvailableChunksCached(db, availableChunkIds.keys)) {
+            if (!chunksCache.areAllAvailableChunksCached(availableChunkIds.keys)) {
                 cacheRepopulater.repopulate(streamKey, availableChunkIds)
             }
 

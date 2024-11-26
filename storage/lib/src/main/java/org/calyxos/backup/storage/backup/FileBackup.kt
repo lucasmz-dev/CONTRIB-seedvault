@@ -12,6 +12,7 @@ import org.calyxos.backup.storage.content.ContentFile
 import org.calyxos.backup.storage.content.DocFile
 import org.calyxos.backup.storage.content.MediaFile
 import org.calyxos.backup.storage.db.CachedFile
+import org.calyxos.backup.storage.db.ChunksCache
 import org.calyxos.backup.storage.db.FilesCache
 import org.calyxos.seedvault.core.backends.saf.openInputStream
 import java.io.IOException
@@ -21,6 +22,7 @@ internal class FileBackup(
     private val contentResolver: ContentResolver,
     private val hasMediaAccessPerm: Boolean,
     private val filesCache: FilesCache,
+    private val chunksCache: ChunksCache,
     private val chunker: Chunker,
     private val chunkWriter: ChunkWriter,
 ) {
@@ -80,7 +82,8 @@ internal class FileBackup(
     ): FileBackupResult {
         val cachedFile = filesCache.getByUri(file.uri)
         val missingChunkIds = cachedFile?.chunks?.minus(availableChunkIds) ?: emptyList()
-        if (missingChunkIds.isEmpty() && file.hasNotChanged(cachedFile)) {
+        val hasCorruptedChunks = chunksCache.hasCorruptedChunks(cachedFile?.chunks ?: emptyList())
+        if (missingChunkIds.isEmpty() && file.hasNotChanged(cachedFile) && !hasCorruptedChunks) {
             cachedFile as CachedFile // not null because hasNotChanged() returned true
             return FileBackupResult(cachedFile.chunks, cachedFile.chunks.size, 0L, false)
         }
