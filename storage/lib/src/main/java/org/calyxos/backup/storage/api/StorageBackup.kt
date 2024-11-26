@@ -14,7 +14,6 @@ import android.provider.Settings
 import android.provider.Settings.Secure.ANDROID_ID
 import android.util.Log
 import androidx.annotation.WorkerThread
-import androidx.room.Room
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -53,8 +52,7 @@ public class StorageBackup(
 ) {
 
     private val db: Db by lazy {
-        Room.databaseBuilder(context, Db::class.java, "seedvault-storage-local-cache")
-            .build()
+        Db.build(context)
     }
     private val uriStore by lazy { db.getUriStore() }
     private val backend get() = backendManager.backend

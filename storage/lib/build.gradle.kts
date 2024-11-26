@@ -6,6 +6,7 @@ import com.google.protobuf.gradle.id
  */
 plugins {
     alias(libs.plugins.android.library)
+    alias(libs.plugins.androidx.room)
     alias(libs.plugins.google.ksp)
     alias(libs.plugins.google.protobuf)
     alias(libs.plugins.jetbrains.kotlin.android)
@@ -44,6 +45,10 @@ android {
             "-opt-in=kotlin.RequiresOptIn",
             "-Xexplicit-api=strict"
         )
+    }
+
+    room {
+        schemaDirectory("$projectDir/schemas")
     }
 
     protobuf {
@@ -101,6 +106,7 @@ dependencies {
     testImplementation("io.mockk:mockk:${libs.versions.mockk.get()}")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:${libs.versions.kotlin.get()}")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
+    androidTestImplementation("androidx.room:room-testing:${libs.versions.room.get()}")
     androidTestImplementation(
         "androidx.test.espresso:espresso-core:${libs.versions.espresso.get()}"
     )
