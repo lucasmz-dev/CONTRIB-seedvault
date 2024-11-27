@@ -214,15 +214,15 @@ internal class ChunkWriterTest {
         }
 
         // check that output matches chunk data
-        assertEquals(1 + chunks[0].size.toInt(), chunk1Output.size())
+        assertEquals(1 + chunks[0].plaintextSize.toInt(), chunk1Output.size())
         assertArrayEquals(
             chunk1Bytes,
-            chunk1Output.toByteArray().copyOfRange(1, 1 + chunks[0].size.toInt())
+            chunk1Output.toByteArray().copyOfRange(1, 1 + chunks[0].plaintextSize.toInt())
         )
-        assertEquals(1 + chunks[2].size.toInt(), chunk3Output.size())
+        assertEquals(1 + chunks[2].plaintextSize.toInt(), chunk3Output.size())
         assertArrayEquals(
             chunk3Bytes,
-            chunk3Output.toByteArray().copyOfRange(1, 1 + chunks[2].size.toInt())
+            chunk3Output.toByteArray().copyOfRange(1, 1 + chunks[2].plaintextSize.toInt())
         )
     }
 

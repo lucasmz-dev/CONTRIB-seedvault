@@ -26,6 +26,10 @@ internal data class CachedChunk(
      * Note that this is *not* about how many files across various snapshots are referencing it.
      */
     @ColumnInfo(name = "ref_count") val refCount: Long,
+    /**
+     * The ciphertext size of the chunk on disk, including the version byte.
+     * Not the plaintext size.
+     */
     val size: Long,
     val version: Byte = Backup.VERSION,
     @ColumnInfo(defaultValue = "0")

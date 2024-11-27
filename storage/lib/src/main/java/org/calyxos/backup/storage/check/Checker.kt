@@ -25,7 +25,6 @@ import org.calyxos.backup.storage.restore.readVersion
 import org.calyxos.seedvault.core.backends.FileBackupFileType
 import org.calyxos.seedvault.core.backends.IBackendManager
 import org.calyxos.seedvault.core.backends.TopLevelFolder
-import org.calyxos.seedvault.core.crypto.CoreCrypto
 import org.calyxos.seedvault.core.crypto.KeyManager
 import org.calyxos.seedvault.core.toHexString
 import java.io.IOException
@@ -219,11 +218,8 @@ internal class Checker(
                     Log.i(TAG, "Chunk ${chunk.id} known to be corrupted.")
                     return@forEach
                 }
-                val plaintextSize = chunk?.size ?: 0L
-                // expectedSize is one version byte plus ciphertext size
-                val expectedSize = 1 + CoreCrypto.expectedCiphertextSize(plaintextSize)
-                if (size != expectedSize) {
-                    Log.i(TAG, "Expected size $expectedSize, but chunk had $size: $chunkId")
+                if (size != chunk?.size) {
+                    Log.i(TAG, "Expected size ${chunk?.size}, but chunk had $size: $chunkId")
                     suspiciousChunkIds.add(chunkId)
                 }
             }
@@ -257,7 +253,7 @@ internal class Checker(
         val size = getBackupSize()
         val targetSize = (size * (percent.toDouble() / 100)).roundToLong()
         val blobSample = mutableListOf<String>()
-        val priorityChunksIds = referencedChunkIds.intersect(suspiciousChunkIds)
+        val priorityChunksIds = referencedChunkIds.intersect(suspiciousChunkIds).shuffled()
         val iterator = (priorityChunksIds + referencedChunkIds.shuffled()).iterator()
         var currentSize = 0L
         while (currentSize < targetSize && iterator.hasNext()) {
