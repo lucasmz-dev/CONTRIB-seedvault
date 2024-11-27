@@ -87,7 +87,7 @@ internal class Restore(
                         snapshot = snapshotRetriever.getSnapshot(streamKey, oldItem.storedSnapshot)
                     )
                 } catch (e: Exception) {
-                    Log.e("TAG", "Error retrieving snapshot X ${oldItem.time}", e)
+                    Log.e(TAG, "Error retrieving snapshot ${oldItem.time}", e)
                     null
                 }
                 if (item == null) {
@@ -156,13 +156,15 @@ internal class Restore(
 @Throws(IOException::class, GeneralSecurityException::class)
 internal fun InputStream.readVersion(expectedVersion: Int? = null): Int {
     val version = read()
-    if (version == -1) throw IOException("File empty!")
+    if (version == -1) throw FileEmptyException()
     if (expectedVersion != null && version != expectedVersion) {
         throw GeneralSecurityException("Expected version $expectedVersion, not $version")
     }
-    if (version > Backup.VERSION) {
-        // TODO maybe throw a different exception here and tell the user?
-        throw IOException("Got version $version which is higher than what is supported.")
-    }
+    if (version > Backup.VERSION) throw UnsupportedVersionException(
+        "Got version $version which is higher than what is supported."
+    )
     return version
 }
+
+internal class FileEmptyException : IOException("File empty!")
+internal class UnsupportedVersionException(msg: String) : IOException(msg)

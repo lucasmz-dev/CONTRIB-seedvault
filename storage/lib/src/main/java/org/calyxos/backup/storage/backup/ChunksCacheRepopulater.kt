@@ -11,6 +11,8 @@ import org.calyxos.backup.storage.db.CachedChunk
 import org.calyxos.backup.storage.db.ChunksCache
 import org.calyxos.backup.storage.getCurrentBackupSnapshots
 import org.calyxos.backup.storage.measure
+import org.calyxos.backup.storage.restore.FileEmptyException
+import org.calyxos.backup.storage.restore.UnsupportedVersionException
 import org.calyxos.seedvault.core.backends.FileBackupFileType
 import org.calyxos.seedvault.core.backends.IBackendManager
 import java.io.IOException
@@ -45,13 +47,20 @@ internal class ChunksCacheRepopulater(
     ) {
         val start = System.currentTimeMillis()
         val snapshots = backend.getCurrentBackupSnapshots(androidId).mapNotNull { storedSnapshot ->
-                try {
-                    snapshotRetriever.getSnapshot(streamKey, storedSnapshot)
-                } catch (e: GeneralSecurityException) {
-                    Log.w(TAG, "Error fetching snapshot $storedSnapshot", e)
-                    null
-                }
+            // get snapshot and ignore it if it is corrupted or permanently unreadable
+            try {
+                snapshotRetriever.getSnapshot(streamKey, storedSnapshot)
+            } catch (e: GeneralSecurityException) {
+                Log.w(TAG, "Error fetching snapshot $storedSnapshot", e)
+                null
+            } catch (e: FileEmptyException) {
+                Log.w(TAG, "Error fetching snapshot $storedSnapshot", e)
+                null
+            } catch (e: UnsupportedVersionException) {
+                Log.w(TAG, "Error fetching snapshot $storedSnapshot", e)
+                null
             }
+        }
         val snapshotDuration = (System.currentTimeMillis() - start).toDuration(MILLISECONDS)
         Log.i(TAG, "Retrieving and parsing all snapshots took $snapshotDuration")
 
