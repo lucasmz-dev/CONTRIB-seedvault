@@ -45,5 +45,7 @@
     <string name="check_error_has_snapshots">We found %1$d backup snapshots, some of them are corrupt or have errors. Below are the backups that could be restored.</string>
     <string name="check_error_no_result">We lost the detailed results. Did a long time pass since running the check? Try running again.</string>
     <string name="check_error_snapshot">This backup has some errors. You may be able to restore it partly.</string>
+    <string name="check_files_title">Files in backup</string>
+    <string name="check_files_text">The \"%s\" includes the following files:</string>
 
 </resources>

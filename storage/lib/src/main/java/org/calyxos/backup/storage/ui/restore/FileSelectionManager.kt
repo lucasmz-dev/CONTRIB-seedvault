@@ -206,7 +206,7 @@ public class FileSelectionManager {
         )
     }
 
-    private fun clearState() {
+    internal fun clearState() {
         snapshot = null
         expandedFolder = null
         allFolders.clear()
