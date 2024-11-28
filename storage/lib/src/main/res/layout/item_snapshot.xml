@@ -24,10 +24,21 @@
             android:layout_height="wrap_content"
             android:layout_marginEnd="8dp"
             android:textAppearance="?android:attr/textAppearanceListItem"
-            app:layout_constraintEnd_toStartOf="@+id/sizeView"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Backup name which might be quite long, who knows...?" />
+
+        <TextView
+            android:id="@+id/infoView"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/nameView"
+            tools:text="1337 files (32 GB)" />
 
         <TextView
             android:id="@+id/errorView"
@@ -38,9 +49,9 @@
             android:text="@string/check_error_snapshot"
             android:textColor="?colorError"
             android:visibility="gone"
-            app:layout_constraintEnd_toStartOf="@+id/sizeView"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/nameView"
+            app:layout_constraintTop_toBottomOf="@+id/infoView"
             tools:visibility="visible" />
 
         <TextView
@@ -49,21 +60,11 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/sizeView"
-            app:layout_constraintHorizontal_chainStyle="spread_inside"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/errorView"
             tools:text="24h ago" />
-
-        <TextView
-            android:id="@+id/sizeView"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/timeView"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:text="35 GB" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
