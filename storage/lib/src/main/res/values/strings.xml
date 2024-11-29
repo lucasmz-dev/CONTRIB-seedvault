@@ -47,5 +47,6 @@
     <string name="check_error_snapshot">This backup has some errors. You may be able to restore it partly.</string>
     <string name="check_files_title">Files in backup</string>
     <string name="check_files_text">The \"%s\" includes the following files:</string>
+    <string name="check_files_error">Backup data is corrupted. File won\'t fully restore.</string>
 
 </resources>

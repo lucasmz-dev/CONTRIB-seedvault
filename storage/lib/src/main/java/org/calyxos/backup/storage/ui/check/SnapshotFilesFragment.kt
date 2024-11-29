@@ -70,7 +70,8 @@ public class SnapshotFilesFragment : Fragment() {
             Toast.makeText(requireContext(), R.string.check_error_no_result, LENGTH_LONG).show()
             parentFragmentManager.popBackStack()
         } else {
-            fileSelectionManager.onSnapshotChosen(snapshot)
+            val badChunkIds = (checkResult as? CheckResult.Error)?.badChunkIds
+            fileSelectionManager.onSnapshotChosen(snapshot, badChunkIds)
 
             val textView: TextView = requireView().requireViewById(R.id.textView)
             textView.text = getString(R.string.check_files_text, snapshot.name)

@@ -63,7 +63,9 @@ internal class FilesAdapter(
 
         private val context = itemView.context
         private val expandView: ImageView = itemView.findViewById(R.id.expandView)
+        private val warningView: ImageView = itemView.findViewById(R.id.warningImageView)
         private val nameView: TextView = itemView.findViewById(R.id.nameView)
+        private val errorView: TextView = itemView.findViewById(R.id.errorView)
         private val infoView: TextView = itemView.findViewById(R.id.infoView)
         private val checkBox: CheckBox = itemView.findViewById(R.id.checkBox)
 
@@ -89,7 +91,9 @@ internal class FilesAdapter(
                 else checkBox.toggle()
             }
             itemView.updatePadding(left = indentPadding * item.level)
+            warningView.visibility = if (item.hasIssue) VISIBLE else GONE
             nameView.text = item.name
+            errorView.visibility = if (item.hasIssue && item is FileItem) VISIBLE else GONE
 
             val now = System.currentTimeMillis()
             var text = Formatter.formatShortFileSize(context, item.size)

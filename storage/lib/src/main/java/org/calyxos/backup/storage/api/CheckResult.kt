@@ -28,11 +28,11 @@ public sealed class CheckResult {
 
         val goodSnapshots: List<BackupSnapshot>
         val badSnapshots: List<BackupSnapshot>
+        val badChunkIds: Set<String> get() = missingChunkIds + malformedChunkIds
 
         init {
             val good = mutableListOf<BackupSnapshot>()
             val bad = mutableListOf<BackupSnapshot>()
-            val badChunkIds = missingChunkIds + malformedChunkIds
             snapshots.forEach { snapshot ->
                 val chunkIds = (snapshot.mediaFilesList.flatMap { it.chunkIdsList } +
                     snapshot.documentFilesList.flatMap { it.chunkIdsList }).toSet()
