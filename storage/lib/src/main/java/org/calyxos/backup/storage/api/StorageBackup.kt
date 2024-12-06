@@ -186,8 +186,8 @@ public class StorageBackup(
 
     public suspend fun runBackup(backupObserver: BackupObserver?): Boolean =
         withContext(dispatcher) {
-            if (backupRunning.getAndSet(true)) {
-                Log.w(TAG, "Backup already running, not starting a new one")
+            if (checkRunning.get() || !backupRunning.compareAndSet(false, true)) {
+                Log.w(TAG, "Backup or check already running, not starting a new one")
                 return@withContext false
             }
             try {
@@ -245,7 +245,7 @@ public class StorageBackup(
         snapshot: BackupSnapshot,
         restoreObserver: RestoreObserver? = null,
     ): Boolean = withContext(dispatcher) {
-        if (restoreRunning.getAndSet(true)) {
+        if (!restoreRunning.compareAndSet(false, true)) {
             Log.w(TAG, "Restore already running, not starting a new one")
             return@withContext false
         }
@@ -264,17 +264,22 @@ public class StorageBackup(
         return checker.getBackupSize()
     }
 
-    public suspend fun checkBackups(percent: Int, checkObserver: CheckObserver?) {
+    public suspend fun checkBackups(percent: Int, checkObserver: CheckObserver?): Boolean {
         check(percent in 0..100) { "Invalid percentage: $percent" }
-        checkObserver?.onStartChecking()
+        if (checkRunning.get() || backupRunning.get()) {
+            Log.w(TAG, "Check or backup already running, not starting a new one")
+            return false
+        }
         checkResult = withContext(dispatcher) {
             checkRunning.set(true)
             try {
+                checkObserver?.onStartChecking()
                 checker.check(percent, checkObserver)
             } finally {
                 checkRunning.set(false)
             }
         }
+        return true
     }
 
     public fun clearCheckResult() {

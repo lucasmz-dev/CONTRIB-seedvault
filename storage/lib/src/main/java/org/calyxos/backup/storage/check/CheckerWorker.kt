@@ -66,8 +66,8 @@ public abstract class CheckerWorker(
         check(percent in 0..100) { "Percent $percent out of bounds." }
 
         val observer = NotificationCheckObserver(applicationContext, resultActivityClass)
-        storageBackup.checkBackups(percent, observer)
-        return Result.success()
+        if (storageBackup.checkBackups(percent, observer)) return Result.success()
+        return Result.retry()
     }
 
     private fun createForegroundInfo() = ForegroundInfo(

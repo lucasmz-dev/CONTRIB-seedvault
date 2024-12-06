@@ -51,6 +51,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
     private lateinit var backupScheduling: Preference
     private lateinit var backupAppCheck: Preference
     private lateinit var backupStorage: TwoStatePreference
+    private lateinit var backupFileCheck: Preference
     private lateinit var backupRecoveryCode: Preference
 
     private val backendProperties: BackendProperties<*>?
@@ -125,6 +126,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             onEnablingStorageBackup()
             return@OnPreferenceChangeListener false
         }
+        backupFileCheck = findPreference("backup_file_check")!!
 
         backupRecoveryCode = findPreference("backup_recovery_code")!!
     }
@@ -146,6 +148,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
             toolbar.menu.findItem(R.id.action_restore)?.isEnabled = possible
             backupLocation.isEnabled = possible
             backupAppCheck.isEnabled = possible
+            backupFileCheck.isEnabled = possible
         }
 
         viewModel.lastBackupTime.observe(viewLifecycleOwner) { time ->
