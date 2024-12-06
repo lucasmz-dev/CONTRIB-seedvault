@@ -80,8 +80,8 @@
             app:fragment="com.stevesoltys.seedvault.ui.check.FileCheckFragment"
             app:icon="@drawable/ic_cloud_search"
             app:key="backup_file_check"
-            app:summary="@string/settings_backup_app_check_summary"
-            app:title="@string/settings_backup_app_check_title" />
+            app:summary="@string/settings_backup_file_check_summary"
+            app:title="@string/settings_backup_file_check_title" />
 
     </PreferenceCategory>
 
