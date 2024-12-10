@@ -27,6 +27,7 @@ import com.stevesoltys.seedvault.R
 import com.stevesoltys.seedvault.backend.BackendManager
 import com.stevesoltys.seedvault.permitDiskReads
 import com.stevesoltys.seedvault.restore.RestoreActivity
+import com.stevesoltys.seedvault.settings.BackupPermission.BackupAllowed
 import com.stevesoltys.seedvault.ui.notification.BackupNotificationManager
 import com.stevesoltys.seedvault.ui.toRelativeTime
 import org.calyxos.seedvault.core.backends.BackendProperties
@@ -83,8 +84,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
                             trySetBackupEnabled(false)
                             dialog.dismiss()
                         }
-                        .setNegativeButton(R.string.settings_backup_apk_dialog_cancel) { dialog,
-                            _ -> dialog.dismiss()
+                        .setNegativeButton(R.string.settings_backup_apk_dialog_cancel) { d, _ ->
+                            d.dismiss()
                         }
                         .show()
                     return@OnPreferenceChangeListener false
@@ -143,12 +144,16 @@ class SettingsFragment : PreferenceFragmentCompat() {
             }
         }
 
-        viewModel.backupPossible.observe(viewLifecycleOwner) { possible ->
-            toolbar.menu.findItem(R.id.action_backup)?.isEnabled = possible
-            toolbar.menu.findItem(R.id.action_restore)?.isEnabled = possible
-            backupLocation.isEnabled = possible
-            backupAppCheck.isEnabled = possible
-            backupFileCheck.isEnabled = possible
+        viewModel.backupPossible.observe(viewLifecycleOwner) { permission ->
+            val allowed = permission == BackupAllowed
+            toolbar.menu.findItem(R.id.action_backup)?.isEnabled = allowed
+            toolbar.menu.findItem(R.id.action_restore)?.isEnabled = allowed
+            // backup location can be changed when backup isn't allowed,
+            // because flash-drive isn't plugged in
+            backupLocation.isEnabled = allowed ||
+                (permission as? BackupPermission.BackupRestricted)?.unavailableUsb == true
+            backupAppCheck.isEnabled = allowed
+            backupFileCheck.isEnabled = allowed
         }
 
         viewModel.lastBackupTime.observe(viewLifecycleOwner) { time ->

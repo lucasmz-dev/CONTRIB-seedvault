@@ -39,6 +39,8 @@ import com.stevesoltys.seedvault.backend.BackendManager
 import com.stevesoltys.seedvault.crypto.KeyManager
 import com.stevesoltys.seedvault.permitDiskReads
 import com.stevesoltys.seedvault.repo.Checker
+import com.stevesoltys.seedvault.settings.BackupPermission.BackupAllowed
+import com.stevesoltys.seedvault.settings.BackupPermission.BackupRestricted
 import com.stevesoltys.seedvault.storage.StorageBackupJobService
 import com.stevesoltys.seedvault.ui.LiveEvent
 import com.stevesoltys.seedvault.ui.MutableLiveEvent
@@ -64,6 +66,11 @@ import java.util.concurrent.TimeUnit.HOURS
 private const val TAG = "SettingsViewModel"
 private const val USER_FULL_DATA_BACKUP_AWARE = "user_full_data_backup_aware"
 
+sealed class BackupPermission {
+    object BackupAllowed : BackupPermission()
+    class BackupRestricted(val unavailableUsb: Boolean = false) : BackupPermission()
+}
+
 internal class SettingsViewModel(
     app: Application,
     settingsManager: SettingsManager,
@@ -86,8 +93,8 @@ internal class SettingsViewModel(
 
     private val isBackupRunning: StateFlow<Boolean>
     private val isCheckOrPruneRunning: StateFlow<Boolean>
-    private val mBackupPossible = MutableLiveData(false)
-    val backupPossible: LiveData<Boolean> = mBackupPossible
+    private val mBackupPossible = MutableLiveData<BackupPermission>(BackupRestricted())
+    val backupPossible: LiveData<BackupPermission> = mBackupPossible
 
     private val mBackupSize = MutableLiveData<Long>()
     val backupSize: LiveData<Long> = mBackupSize
@@ -183,12 +190,24 @@ internal class SettingsViewModel(
         onStoragePropertiesChanged()
     }
 
-    private fun onBackupRunningStateChanged() {
+    private suspend fun onBackupRunningStateChanged() = withContext(Dispatchers.IO) {
         val backupAllowed = !isBackupRunning.value && !isCheckOrPruneRunning.value
-        if (backupAllowed) viewModelScope.launch(Dispatchers.IO) {
-            val canDo = !backendManager.isOnUnavailableUsb()
-            mBackupPossible.postValue(canDo)
-        } else mBackupPossible.postValue(false)
+        if (backupAllowed) {
+            if (backendManager.isOnUnavailableUsb()) {
+                updateBackupPossible(BackupRestricted(unavailableUsb = true))
+            } else {
+                updateBackupPossible(BackupAllowed)
+            }
+        } else updateBackupPossible(BackupRestricted())
+    }
+
+    /**
+     * Updates [mBackupPossible] on the UiThread to avoid race conditions.
+     */
+    private suspend fun updateBackupPossible(newValue: BackupPermission) {
+        withContext(Dispatchers.Main) {
+            mBackupPossible.value = newValue
+        }
     }
 
     private fun onStoragePropertiesChanged() {
@@ -221,7 +240,7 @@ internal class SettingsViewModel(
             networkCallback.registered = true
         }
         // update whether we can do backups right now or not
-        onBackupRunningStateChanged()
+        viewModelScope.launch { onBackupRunningStateChanged() }
     }
 
     override fun onCleared() {
