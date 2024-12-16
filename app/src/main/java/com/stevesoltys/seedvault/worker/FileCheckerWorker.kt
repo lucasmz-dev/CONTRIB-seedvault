@@ -25,6 +25,7 @@ class FileCheckerWorker(
 
     companion object {
         private val TAG = FileCheckerWorker::class.simpleName
+        const val UNIQUE_WORK_NAME = CheckerWorker.UNIQUE_WORK_NAME
 
         fun scheduleNow(
             context: Context,
