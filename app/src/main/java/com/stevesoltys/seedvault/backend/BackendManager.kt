@@ -48,9 +48,11 @@ class BackendManager(
     init {
         when (settingsManager.storagePluginType) {
             StoragePluginType.SAF -> {
-                val safConfig = settingsManager.getSafProperties() ?: error("No SAF storage saved")
-                mBackend = backendFactory.createSafBackend(safConfig)
-                mBackendProperties = safConfig
+                val safProperties = settingsManager.getSafProperties()
+                    ?: error("No SAF storage saved")
+                val ctx = context.getStorageContext { safProperties.isUsb }
+                mBackend = backendFactory.createSafBackend(ctx, safProperties)
+                mBackendProperties = safProperties
             }
 
             StoragePluginType.WEB_DAV -> {
