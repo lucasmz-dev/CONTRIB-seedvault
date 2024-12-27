@@ -136,6 +136,10 @@
             android:label="@string/notification_checking_finished_title"
             android:launchMode="singleTask"/>
 
+        <activity
+            android:name=".ui.check.FileCheckResultActivity"
+            android:launchMode="singleTask"/>
+
         <service
             android:name=".transport.ConfigurableBackupTransportService"
             android:exported="false">
