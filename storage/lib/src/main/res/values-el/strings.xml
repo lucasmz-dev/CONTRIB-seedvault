@@ -19,4 +19,9 @@
     <string name="snapshots_error">Σφάλμα φόρτωσης στιγμιότυπων</string>
     <string name="content_add">Προσθήκη</string>
     <string name="content_options">Επιλογές</string>
+    <string name="notification_restore_complete_dups">%1$d αρχεία ήταν διπλότυπα.</string>
+    <string name="notification_restore_complete_errors">%1$d αρχεία είχαν σφάλματα.</string>
+    <string name="select_files_title">Ελέγξτε τα αρχεία για επαναφορά</string>
+    <string name="select_files_number_of_files">%1$d αρχείο/α</string>
+    <string name="select_files_button_restore">Επαναφορά επιλεγμένων αρχείων</string>
 </resources>
