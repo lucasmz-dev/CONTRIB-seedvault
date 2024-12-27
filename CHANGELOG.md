@@ -1,3 +1,9 @@
+## [14-5.2] - 2024-12-27
+* It is now possible to verify the integrity of file backups as well, partially or fully
+* Improve files backup snapshot UI
+* Allow changing backup location when USB drive isn't plugged in
+* Fix work profile USB backup
+
 ## [14-5.1] - 2024-12-10
 * First Android 15 release
 * New backup format using compression and deduplication
