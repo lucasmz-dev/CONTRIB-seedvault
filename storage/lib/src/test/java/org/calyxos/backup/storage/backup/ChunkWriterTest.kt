@@ -254,6 +254,65 @@ internal class ChunkWriterTest {
         )
     }
 
+    @Test
+    fun testChunkSavingCanBeRetried() = runBlocking {
+        val chunkBytes = Random.nextBytes(16 * 1024 * 1024)
+        val inputStream = ByteArrayInputStream(chunkBytes)
+        val chunks = listOf(
+            Chunk(chunkId1, 0, chunkBytes.size.toLong()),
+        )
+        val chunkOutput1 = ByteArrayOutputStream()
+        val chunkOutput2 = ByteArrayOutputStream()
+        val chunkOutput3 = ByteArrayOutputStream()
+
+        // chunk is not cached
+        every { chunksCache.get(chunkId1) } returns null
+
+        // get the output streams for the chunks
+        val saverSlot = slot<BackendSaver>()
+        var size1 = -1L
+        var size2 = -1L
+        coEvery { backend.save(Blob(androidId, chunkId1), capture(saverSlot)) } answers {
+            // saver saves 3 times
+            size1 = saverSlot.captured.save(chunkOutput1)
+            size2 = saverSlot.captured.save(chunkOutput2)
+            saverSlot.captured.save(chunkOutput3)
+        }
+
+        // wrap output streams in crypto streams
+        val streamSlot = slot<OutputStream>()
+        every { streamCrypto.getAssociatedDataForChunk(chunkId1) } returns ad1
+        every { streamCrypto.newEncryptingStream(streamKey, capture(streamSlot), ad1) } answers {
+            streamSlot.captured
+        }
+
+        // insert chunks into cache after upload
+        every {
+            chunksCache.insert(chunks[0].toCachedChunk(chunkBytes.size.toLong() + 1))
+        } just Runs
+
+        chunkWriter.writeChunk(inputStream, chunks, emptyList())
+
+        // check that output matches chunk data
+        assertEquals(1 + chunks[0].plaintextSize.toInt(), chunkOutput1.size())
+        assertEquals(1 + chunks[0].plaintextSize.toInt(), chunkOutput2.size())
+        assertEquals(1 + chunks[0].plaintextSize.toInt(), chunkOutput3.size())
+        assertArrayEquals(
+            chunkBytes,
+            chunkOutput1.toByteArray().copyOfRange(1, 1 + chunks[0].plaintextSize.toInt())
+        )
+        assertArrayEquals(
+            chunkBytes,
+            chunkOutput2.toByteArray().copyOfRange(1, 1 + chunks[0].plaintextSize.toInt())
+        )
+        assertArrayEquals(
+            chunkBytes,
+            chunkOutput3.toByteArray().copyOfRange(1, 1 + chunks[0].plaintextSize.toInt())
+        )
+        assertEquals(chunkOutput3.size().toLong(), size1)
+        assertEquals(chunkOutput3.size().toLong(), size2)
+    }
+
     private fun MockKMatcherScope.bytes(size: Int) = match<ByteArray> {
         it.size == size
     }

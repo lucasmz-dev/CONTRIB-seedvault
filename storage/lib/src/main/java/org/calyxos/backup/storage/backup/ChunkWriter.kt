@@ -9,8 +9,6 @@ import android.util.Log
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import okio.Buffer
-import okio.buffer
-import okio.sink
 import org.calyxos.backup.storage.backup.Backup.Companion.VERSION
 import org.calyxos.backup.storage.crypto.StreamCrypto
 import org.calyxos.backup.storage.db.ChunksCache
@@ -92,11 +90,7 @@ internal class ChunkWriter(
                 override val size: Long = buffer.size
                 override val sha256: String = buffer.sha256().hex()
                 override fun save(outputStream: OutputStream): Long {
-                    val outputBuffer = outputStream.sink().buffer()
-                    val length = outputBuffer.writeAll(buffer)
-                    // flushing is important here, otherwise data doesn't get fully written!
-                    outputBuffer.flush()
-                    return length
+                    return buffer.copyTo(outputStream).size
                 }
             }
             return try {
