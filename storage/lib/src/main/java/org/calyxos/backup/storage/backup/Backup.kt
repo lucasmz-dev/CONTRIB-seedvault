@@ -11,6 +11,7 @@ import android.content.pm.PackageManager.PERMISSION_GRANTED
 import android.os.Build
 import android.text.format.Formatter
 import android.util.Log
+import okio.Buffer
 import org.calyxos.backup.storage.api.BackupObserver
 import org.calyxos.backup.storage.crypto.ChunkCrypto
 import org.calyxos.backup.storage.crypto.StreamCrypto
@@ -24,7 +25,6 @@ import org.calyxos.seedvault.core.backends.FileBackupFileType
 import org.calyxos.seedvault.core.backends.IBackendManager
 import org.calyxos.seedvault.core.backends.TopLevelFolder
 import org.calyxos.seedvault.core.crypto.KeyManager
-import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.io.OutputStream
 import java.security.GeneralSecurityException
@@ -171,24 +171,24 @@ internal class Backup(
                 .setTimeStart(startTime)
                 .setTimeEnd(endTime)
                 .build()
-            val bytesOutputStream = ByteArrayOutputStream(backupSnapshot.serializedSize)
-            bytesOutputStream.write(VERSION.toInt())
+            val buffer = Buffer()
+            buffer.writeByte(VERSION.toInt())
             val ad = streamCrypto.getAssociatedDataForSnapshot(startTime)
-            streamCrypto.newEncryptingStream(streamKey, bytesOutputStream, ad).use { cryptoStream ->
-                backupSnapshot.writeTo(cryptoStream)
+            streamCrypto.newEncryptingStream(streamKey, buffer.outputStream(), ad).use { stream ->
+                backupSnapshot.writeTo(stream)
             }
             MemoryLogger.log()
             val fileHandle = FileBackupFileType.Snapshot(androidId, startTime)
             val saver = object : BackendSaver {
-                override val size: Long = bytesOutputStream.size().toLong()
+                override val size: Long = buffer.size
                 override val sha256: String? = null
                 override fun save(outputStream: OutputStream): Long {
-                    val bytes = bytesOutputStream.toByteArray()
-                    outputStream.write(bytes)
-                    return bytes.size.toLong()
+                    buffer.copyTo(outputStream)
+                    return size
                 }
             }
             backend.save(fileHandle, saver)
+            buffer.clear()
             MemoryLogger.log()
         }
         val snapshotSize = backupSnapshot.serializedSize.toLong()

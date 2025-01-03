@@ -9,6 +9,8 @@ import java.io.OutputStream
 
 /**
  * Used to save data with [Backend]s.
+ *
+ * Attention: Ensure that [save] can safely called more than once and still saves the same data.
  */
 public interface BackendSaver {
     /**

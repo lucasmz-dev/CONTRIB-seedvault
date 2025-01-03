@@ -557,15 +557,6 @@ internal class BackupRestoreTest {
         volume = MediaStore.VOLUME_EXTERNAL_PRIMARY,
     )
 
-    private fun getRandomDocFile(size: Int) = DocFile(
-        uri = mockk(),
-        dirPath = getRandomString(),
-        fileName = getRandomString(),
-        lastModified = Random.nextLong(),
-        size = size.toLong(),
-        volume = MediaStore.VOLUME_EXTERNAL_PRIMARY,
-    )
-
     private fun getRestorableFileM(file: ContentFile, snapshot: BackupSnapshot): RestorableFile {
         return RestorableFile(snapshot.mediaFilesList.find {
             file.size == it.size
@@ -595,3 +586,12 @@ internal class BackupRestoreTest {
     }
 
 }
+
+internal fun getRandomDocFile(size: Int) = DocFile(
+    uri = mockk(),
+    dirPath = getRandomString(),
+    fileName = getRandomString(),
+    lastModified = Random.nextLong(),
+    size = size.toLong(),
+    volume = MediaStore.VOLUME_EXTERNAL_PRIMARY,
+)
