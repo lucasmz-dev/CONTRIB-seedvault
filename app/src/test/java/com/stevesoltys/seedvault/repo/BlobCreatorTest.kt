@@ -149,4 +149,50 @@ internal class BlobCreatorTest : TransportTest() {
             assertArrayEquals(data, inputStream.readAllBytes())
         }
     }
+
+    @Test
+    fun `test blob saver gets reused by RetryBackend`() = runBlocking {
+        val data = getRandomByteArray(Random.nextInt(16 * 1024 * 1024))
+        val chunk = Chunk(0L, data.size, data, "doesn't matter here")
+        val outputStream1 = ByteArrayOutputStream()
+        val outputStream2 = ByteArrayOutputStream()
+        val outputStream3 = ByteArrayOutputStream()
+        val paddingNum = slot<Int>()
+
+        every { crypto.getAdForVersion() } returns ad
+        every { crypto.newEncryptingStream(capture(passThroughOutputStream), ad) } answers {
+            passThroughOutputStream.captured // not really encrypting here
+        }
+        every { crypto.getRandomBytes(capture(paddingNum)) } answers {
+            getRandomByteArray(paddingNum.captured)
+        }
+        every { crypto.repoId } returns repoId
+        every { backendManager.backend } returns backend
+
+        // create blob
+        val saverSlot = slot<BackendSaver>()
+        var size1 = -1L
+        var size2 = -1L
+        coEvery { backend.save(capture(blobHandle), capture(saverSlot)) } answers {
+            // saver saves 3 times
+            size1 = saverSlot.captured.save(outputStream1)
+            size2 = saverSlot.captured.save(outputStream2)
+            saverSlot.captured.save(outputStream3)
+        }
+        val blob = blobCreator.createNewBlob(chunk)
+        // check that file content hash matches snapshot hash
+        val messageDigest = MessageDigest.getInstance("SHA-256")
+        val hash1 = messageDigest.digest(outputStream1.toByteArray()).toHexString()
+        val hash2 = messageDigest.digest(outputStream2.toByteArray()).toHexString()
+        val hash3 = messageDigest.digest(outputStream3.toByteArray()).toHexString()
+        assertEquals(hash1, blobHandle.captured.name)
+        assertEquals(hash2, blobHandle.captured.name)
+        assertEquals(hash3, blobHandle.captured.name)
+
+        // check blob metadata
+        assertEquals(hash1, blob.id.hexFromProto())
+        assertEquals(outputStream1.size(), blob.length)
+        assertEquals(blob.length.toLong(), size1)
+        assertEquals(blob.length.toLong(), size2)
+    }
 }

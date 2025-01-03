@@ -15,8 +15,6 @@ import com.stevesoltys.seedvault.proto.Snapshot.Blob
 import com.stevesoltys.seedvault.proto.SnapshotKt.blob
 import com.stevesoltys.seedvault.repo.Padding.getPadTo
 import okio.Buffer
-import okio.buffer
-import okio.sink
 import org.calyxos.seedvault.chunker.Chunk
 import org.calyxos.seedvault.core.MemoryLogger
 import org.calyxos.seedvault.core.backends.AppBackupFileType
@@ -74,11 +72,7 @@ internal class BlobCreator(
             override val size: Long get() = buffer.size
             override val sha256: String get() = sha256ByteString.hex()
             override fun save(outputStream: OutputStream): Long {
-                val outputBuffer = outputStream.sink().buffer()
-                val length = outputBuffer.writeAll(buffer)
-                // flushing is important here, otherwise data doesn't get fully written!
-                outputBuffer.flush()
-                return length
+                return buffer.copyTo(outputStream).size
             }
         }
         val size = backendManager.backend.save(handle, saver)
