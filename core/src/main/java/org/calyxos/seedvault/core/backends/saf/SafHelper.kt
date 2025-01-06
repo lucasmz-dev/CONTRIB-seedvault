@@ -159,16 +159,12 @@ public fun getTreeDocumentFile(
  * when querying for a specific file in a directory,
  * so there is no point in trying to optimize the query by not listing all children.
  */
+@Throws(IOException::class)
 public suspend fun DocumentFile.findFileBlocking(
     context: Context,
     displayName: String,
 ): DocumentFile? {
-    val files = try {
-        listFilesBlocking(context)
-    } catch (e: IOException) {
-        Log.e(TAG, "Error finding file blocking", e)
-        return null
-    }
+    val files = listFilesBlocking(context)
     for (doc in files) {
         if (displayName == doc.name) return doc
     }
