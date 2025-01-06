@@ -27,6 +27,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat.Action
 import androidx.core.app.NotificationCompat.Builder
 import androidx.core.app.NotificationCompat.CATEGORY_ERROR
+import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_DEFERRED
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import androidx.core.app.NotificationCompat.PRIORITY_DEFAULT
 import androidx.core.app.NotificationCompat.PRIORITY_HIGH
@@ -59,7 +60,8 @@ private const val NOTIFICATION_ID_RESTORE_ERROR = 6
 internal const val NOTIFICATION_ID_PRUNING = 7
 internal const val NOTIFICATION_ID_CHECKING = 8
 internal const val NOTIFICATION_ID_CHECK_FINISHED = 9
-private const val NOTIFICATION_ID_NO_MAIN_KEY_ERROR = 10
+internal const val NOTIFICATION_ID_USB_MONITOR = 10
+private const val NOTIFICATION_ID_NO_MAIN_KEY_ERROR = 11
 
 private val TAG = BackupNotificationManager::class.java.simpleName
 
@@ -339,6 +341,22 @@ internal class BackupNotificationManager(private val context: Context) {
             foregroundServiceBehavior = FOREGROUND_SERVICE_IMMEDIATE
         }.build()
     }
+
+    /**
+     * Due to [FOREGROUND_SERVICE_DEFERRED], the user is unlikely to see this.
+     */
+    fun getUsbMonitorNotification(): Notification {
+        return Builder(context, CHANNEL_ID_ERROR).apply {
+            setSmallIcon(R.drawable.ic_usb)
+            setContentTitle(context.getString(R.string.notification_usb_monitor_title))
+            setContentText(context.getString(R.string.notification_usb_monitor_text))
+            setOngoing(true)
+            priority = PRIORITY_LOW
+            foregroundServiceBehavior = FOREGROUND_SERVICE_DEFERRED
+        }.build()
+    }
+
+    fun cancelUsbMonitorNotification() = nm.cancel(NOTIFICATION_ID_USB_MONITOR)
 
     fun getCheckNotification() = Builder(context, CHANNEL_ID_CHECKING).apply {
         setSmallIcon(R.drawable.ic_cloud_search)

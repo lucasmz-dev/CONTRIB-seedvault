@@ -200,6 +200,9 @@
     <string name="notification_checking_error_text">Tap for details. We checked %1$s at an average speed of %2$s.</string>
     <string name="notification_checking_action">Details</string>
 
+    <string name="notification_usb_monitor_title">Waiting for USB drive…</string>
+    <string name="notification_usb_monitor_text">Once your USB drive becomes available, we will start a backup.</string>
+
     <string name="backup_app_check_success_intro">%1$d snapshots were found and %2$d%% of their data (%3$s) successfully verified:</string>
     <string name="backup_app_check_success_disclaimer">Note: we cannot verify whether individual apps include all of their user data in the backup.</string>
     <string name="backup_app_check_error_title" translatable="false">@string/notification_checking_error_title</string>
