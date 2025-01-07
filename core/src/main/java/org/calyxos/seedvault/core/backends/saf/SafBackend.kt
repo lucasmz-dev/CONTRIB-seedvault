@@ -238,13 +238,11 @@ public class SafBackend(
     }
 
     override fun isTransientException(e: Exception): Boolean {
-        if (e is StaleDataException && e.message?.contains("closed") == true) {
-            return true
-        } else if (e.cause is StaleDataException &&
+        if (e is SafRetryException) return true
+        if (e is StaleDataException && e.message?.contains("closed") == true) return true
+        if (e.cause is StaleDataException &&
             (e.cause as StaleDataException).message?.contains("closed") == true
-        ) {
-            return true
-        }
+        ) return true
         return false
     }
 

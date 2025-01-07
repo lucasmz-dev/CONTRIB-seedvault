@@ -65,7 +65,8 @@ internal fun DocumentFile.createFileOrThrow(
     name: String,
     mimeType: String = MIME_TYPE,
 ): DocumentFile {
-    val file = createFile(mimeType, name) ?: throw IOException("Unable to create file: $name")
+    val file = createFile(mimeType, name)
+        ?: throw SafRetryException(IOException("Unable to create file: $name"))
     if (file.name != name) {
         file.delete()
         if (file.name == null) { // this happens when file existed already
@@ -73,7 +74,8 @@ internal fun DocumentFile.createFileOrThrow(
             val foundFile = findFile(name)
             if (foundFile?.name == name) return foundFile
         }
-        throw IOException("Wanted to create $name, but got ${file.name}")
+        val e = IOException("Wanted to create $name, but got ${file.name}")
+        throw SafRetryException(e)
     }
     return file
 }
@@ -89,10 +91,11 @@ public suspend fun DocumentFile.getOrCreateDirectory(context: Context, name: Str
 @Throws(IOException::class)
 public fun DocumentFile.createDirectoryOrThrow(name: String): DocumentFile {
     val directory = createDirectory(name)
-        ?: throw IOException("Unable to create directory: $name")
+        ?: throw SafRetryException(IOException("Unable to create directory: $name"))
     if (directory.name != name) {
         directory.delete()
-        throw IOException("Wanted to directory $name, but got ${directory.name}")
+        val e = IOException("Wanted to create directory $name, but got ${directory.name}")
+        throw SafRetryException(e)
     }
     return directory
 }
@@ -159,12 +162,17 @@ public fun getTreeDocumentFile(
  * when querying for a specific file in a directory,
  * so there is no point in trying to optimize the query by not listing all children.
  */
-@Throws(IOException::class)
 public suspend fun DocumentFile.findFileBlocking(
     context: Context,
     displayName: String,
 ): DocumentFile? {
-    val files = listFilesBlocking(context)
+    val files = try {
+        listFilesBlocking(context)
+    } catch (e: IOException) {
+        Log.e(TAG, "Error finding file blocking", e)
+        if (e is SafRetryException) throw e
+        return null
+    }
     for (doc in files) {
         if (displayName == doc.name) return doc
     }
@@ -193,7 +201,7 @@ public suspend fun DocumentFile.findFileBlocking(
 public suspend fun getLoadedCursor(timeout: Long = 15_000, query: () -> Cursor?): Cursor =
     withTimeout(timeout) {
         suspendCancellableCoroutine { cont ->
-            val cursor = query() ?: throw IOException()
+            val cursor = query() ?: throw SafRetryException(IOException("null cursor"))
             cont.invokeOnCancellation {
                 Log.i(TAG, "Closing cursor after getLoadedCursor() got cancelled")
                 cursor.close()
@@ -217,3 +225,5 @@ public suspend fun getLoadedCursor(timeout: Long = 15_000, query: () -> Cursor?)
             }
         }
     }
+
+internal class SafRetryException(e: Exception) : IOException(e)
