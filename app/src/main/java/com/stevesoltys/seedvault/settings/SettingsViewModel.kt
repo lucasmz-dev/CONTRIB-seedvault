@@ -357,6 +357,8 @@ internal class SettingsViewModel(
         try {
             app.contentResolver.openOutputStream(uri, "wt")?.use { outputStream ->
                 getRuntime().exec(command).inputStream.use { inputStream ->
+                    // first log command, so we see if it is correct, e.g. has our own uid
+                    outputStream.write("$command\n\n".toByteArray())
                     inputStream.copyTo(outputStream)
                 }
             } ?: throw IOException("OutputStream was null")
