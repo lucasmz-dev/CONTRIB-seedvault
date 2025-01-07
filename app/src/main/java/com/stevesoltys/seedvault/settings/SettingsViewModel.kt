@@ -307,6 +307,8 @@ internal class SettingsViewModel(
     fun scheduleFilesBackup() {
         if (!backendManager.isOnRemovableDrive && settingsManager.isStorageBackupEnabled()) {
             val requiresNetwork = backendManager.backendProperties?.requiresNetwork == true
+            // FIXME this runs a backup right away (if constraints fulfilled)
+            //  and JobScheduler doesn't offer initial delay
             BackupJobService.scheduleJob(
                 context = app,
                 jobServiceClass = StorageBackupJobService::class.java,
