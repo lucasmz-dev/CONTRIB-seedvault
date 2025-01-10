@@ -43,6 +43,7 @@ import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
 import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -351,6 +352,8 @@ public class WebDavBackend(
     override fun isTransientException(e: Exception): Boolean {
         if (e is SocketTimeoutException) {
             return true
+        } else if (e is UnknownHostException) {
+            return true // gets thrown when phone leaves WiFi range
         } else if (e is EOFException && e.message?.contains("\\n not found") == true) {
             return true
         }

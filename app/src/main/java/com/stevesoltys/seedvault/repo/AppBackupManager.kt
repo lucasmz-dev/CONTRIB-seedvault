@@ -105,7 +105,7 @@ internal class AppBackupManager(
                 snapshot
             } else null
         } catch (e: Exception) {
-            log.error(e) { "Error finishing backup" }
+            log.error(e) { "Error finishing backup: " }
             null
         } finally {
             snapshotCreator = null
