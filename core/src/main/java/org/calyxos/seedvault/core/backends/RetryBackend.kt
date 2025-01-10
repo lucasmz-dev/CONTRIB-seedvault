@@ -13,6 +13,7 @@ import kotlin.reflect.KClass
 
 @VisibleForTesting
 internal const val MAX_RETRIES = 5
+private const val LINEAR_DELAY_MS = 2500L
 
 internal class RetryBackend(private val delegate: Backend) : Backend {
 
@@ -61,7 +62,7 @@ internal class RetryBackend(private val delegate: Backend) : Backend {
     override fun isTransientException(e: Exception): Boolean = delegate.isTransientException(e)
 
     private suspend fun <T> retry(block: suspend () -> T): T {
-        return retry(0, 1000, block)
+        return retry(0, 0, block)
     }
 
     private suspend fun <T> retry(retries: Int, delayMs: Long, block: suspend () -> T): T {
@@ -69,7 +70,9 @@ internal class RetryBackend(private val delegate: Backend) : Backend {
             return block()
         } catch (e: Exception) {
             val newRetries = retries + 1
-            val newDelayMs = delayMs * 2
+            // We are not using exponential backoff,
+            // because the system backup API has some strict timeouts and running into them is bad.
+            val newDelayMs = delayMs + LINEAR_DELAY_MS
             if (newRetries < MAX_RETRIES && isTransientException(e)) {
                 log.warn(e) { "Retrying #$newRetries after error and delay ${newDelayMs}ms: " }
                 delay(newDelayMs)
