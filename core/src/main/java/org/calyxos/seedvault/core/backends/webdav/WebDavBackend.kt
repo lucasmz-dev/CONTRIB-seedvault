@@ -19,6 +19,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody
+import okhttp3.internal.http2.StreamResetException
 import okio.BufferedSink
 import org.calyxos.seedvault.core.backends.AppBackupFileType
 import org.calyxos.seedvault.core.backends.Backend
@@ -354,6 +355,9 @@ public class WebDavBackend(
             return true
         } else if (e is UnknownHostException) {
             return true // gets thrown when phone leaves WiFi range
+        } else if (e is StreamResetException) {
+            // https://github.com/seedvault-app/seedvault/pull/835#issuecomment-2591170084
+            return true
         } else if (e is EOFException && e.message?.contains("\\n not found") == true) {
             return true
         }
