@@ -196,6 +196,12 @@
             android:exported="false"
             android:foregroundServiceType="dataSync"
             android:label="RestoreService" />
+        <!-- Does wait for USB storage root to appear after device was plugged in -->
+        <service
+            android:name=".UsbMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="shortService"
+            android:label="UsbMonitorService" />
 
     </application>
 </manifest>

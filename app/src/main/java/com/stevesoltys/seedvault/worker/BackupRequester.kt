@@ -56,8 +56,11 @@ internal class BackupRequester(
                 val i = Intent(context, StorageBackupService::class.java)
                 // this starts an app backup afterwards
                 i.putExtra(EXTRA_START_APP_BACKUP, appBackupEnabled)
+                Log.i(TAG, "Starting foreground service for file backup...")
+                Log.i(TAG, "  appBackupEnabled = $appBackupEnabled")
                 startForegroundService(context, i)
             } else if (appBackupEnabled) {
+                Log.i(TAG, "File backup disabled, starting only AppBackupWorker...")
                 AppBackupWorker.scheduleNow(context, reschedule)
             } else {
                 Log.d(TAG, "Neither files nor app backup enabled, do nothing.")

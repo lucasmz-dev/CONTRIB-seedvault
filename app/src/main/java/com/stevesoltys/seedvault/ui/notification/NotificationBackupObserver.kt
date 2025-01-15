@@ -148,6 +148,12 @@ internal class NotificationBackupObserver(
                 settingsManager.disableBackup(packageName)
             }
         }
+        // FIXME we should consider not requesting backup of more chunks of packages,
+        //  if the backup has already failed for this chunk,
+        //  because it will result in incomplete snapshots
+        //  since the rest of packages from the failed chunk won't get backed up.
+        //  So we either re-include those packages somehow (may fail again in a loop!)
+        //  or we simply fail the entire backup which may cause more failures for users :(
         if (backupRequester.requestNext()) {
             if (isLoggable(TAG, INFO)) {
                 Log.i(TAG, "Backup finished $numPackages/$requestedPackages. Status: $status")
