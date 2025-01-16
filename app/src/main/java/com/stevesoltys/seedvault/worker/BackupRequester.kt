@@ -70,12 +70,10 @@ internal class BackupRequester(
 
     val isBackupEnabled: Boolean get() = backupManager.isBackupEnabled
 
-    private val packages = packageService.eligiblePackages
-    private val observer = NotificationBackupObserver(
-        context = context,
-        backupRequester = this,
-        requestedPackages = packages.size,
-    )
+    private val packages by lazy { packageService.eligiblePackages }
+    private val observer by lazy {
+        NotificationBackupObserver(context, this, packages.size)
+    }
 
     /**
      * The current package index.

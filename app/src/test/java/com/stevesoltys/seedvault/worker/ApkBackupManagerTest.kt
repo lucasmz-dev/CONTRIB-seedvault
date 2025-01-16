@@ -70,6 +70,7 @@ internal class ApkBackupManagerTest : TransportTest() {
         every { settingsManager.isBackupEnabled(packageInfo.packageName) } returns true
         every { snapshotManager.latestSnapshot } returns snapshot
         every { snapshotCreator.onNoDataInCurrentRun(snapshot, packageName, true) } just Runs
+        every { backendManager.canDoBackupNow() } returns true
 
         expectUploadIcons()
 
@@ -96,6 +97,7 @@ internal class ApkBackupManagerTest : TransportTest() {
         every { settingsManager.isBackupEnabled(packageInfo.packageName) } returns true
         every { snapshotManager.latestSnapshot } returns snapshot
         every { snapshotCreator.onNoDataInCurrentRun(snapshot, packageName, true) } just Runs
+        every { backendManager.canDoBackupNow() } returns true
 
         expectUploadIcons()
 
@@ -128,6 +130,7 @@ internal class ApkBackupManagerTest : TransportTest() {
         every { settingsManager.isBackupEnabled(packageInfo.packageName) } returns true
         every { snapshotManager.latestSnapshot } returns snapshot
         every { snapshotCreator.onNoDataInCurrentRun(snapshot, packageName, true) } just Runs
+        every { backendManager.canDoBackupNow() } returns true
 
         expectUploadIcons()
 
@@ -154,6 +157,7 @@ internal class ApkBackupManagerTest : TransportTest() {
         every { settingsManager.isBackupEnabled(packageInfo.packageName) } returns true
         every { snapshotManager.latestSnapshot } returns snapshot
         every { snapshotCreator.onNoDataInCurrentRun(snapshot, packageName, true) } just Runs
+        every { backendManager.canDoBackupNow() } returns true
 
         expectUploadIcons()
 
@@ -177,6 +181,7 @@ internal class ApkBackupManagerTest : TransportTest() {
         every { nm.onAppsNotBackedUp() } just Runs
         every { packageService.notBackedUpPackages } returns listOf(packageInfo)
         every { settingsManager.isBackupEnabled(packageInfo.packageName) } returns false
+        every { backendManager.canDoBackupNow() } returns true
 
         expectUploadIcons()
 
@@ -250,12 +255,30 @@ internal class ApkBackupManagerTest : TransportTest() {
     }
 
     @Test
+    fun `backup gets aborted at first app when we can't do backup right now`() = runBlocking {
+        val packages = listOf(
+            PackageInfo().apply { packageName = "org.example.1" },
+        )
+
+        expectUploadIcons()
+        expectAllAppsWillGetBackedUp()
+        every { settingsManager.backupApks() } returns true
+        every { packageService.allUserPackages } returns packages
+        every { backendManager.canDoBackupNow() } returns true andThen false
+        every { nm.onApkBackupDone() } just Runs
+
+        assertThrows<IllegalStateException> { apkBackupManager.backup() }
+        Unit
+    }
+
+    @Test
     fun `we keep trying to upload metadata at the end`() = runBlocking {
         every { nm.onAppsNotBackedUp() } just Runs
         every { packageService.notBackedUpPackages } returns listOf(packageInfo)
         every { settingsManager.isBackupEnabled(packageInfo.packageName) } returns true
         every { snapshotManager.latestSnapshot } returns snapshot
         every { snapshotCreator.onNoDataInCurrentRun(snapshot, packageName, true) } just Runs
+        every { backendManager.canDoBackupNow() } returns true
 
         expectUploadIcons()
 
