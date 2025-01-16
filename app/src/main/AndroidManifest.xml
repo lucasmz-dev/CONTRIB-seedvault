@@ -161,6 +161,14 @@
         </receiver>
 
         <receiver
+            android:name=".settings.TryAgainBroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.stevesoltys.seedvault.action.TRY_AGAIN" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".restore.RestoreErrorBroadcastReceiver"
             android:exported="false">
             <intent-filter>
