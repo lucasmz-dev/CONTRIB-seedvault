@@ -60,6 +60,9 @@
     <string name="settings_backup_new_code_dialog_title">New recovery code required</string>
     <string name="settings_backup_new_code_dialog_message">To continue using app backups, you need to generate a new recovery code.\n\nWe are sorry for the inconvenience.</string>
     <string name="settings_backup_new_code_code_dialog_ok">New code</string>
+    <string name="settings_backup_metered_title">Metered network</string>
+    <string name="settings_backup_metered_text">You are currently on a network where you may pay for data, so backup won\'t proceed.\n\nYou can enable backups on mobile data under \"Backup scheduling\".</string>
+
 
     <string name="settings_scheduling_frequency_title">Backup frequency</string>
     <string name="settings_scheduling_frequency_12_hours">Every 12 hours</string>
