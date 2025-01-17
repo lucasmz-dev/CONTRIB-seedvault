@@ -98,6 +98,7 @@ internal class BackupCreationTest : BackupTest() {
 
     init {
         every { backendManager.backend } returns backend
+        every { backendManager.canDoBackupNow() } returns true
         every { appBackupManager.snapshotCreator } returns snapshotCreator
         every { clock.time() } returns token
         every { packageInfo.applicationInfo?.loadLabel(any()) } returns packageName

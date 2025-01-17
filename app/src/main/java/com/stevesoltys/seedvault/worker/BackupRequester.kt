@@ -92,6 +92,11 @@ internal class BackupRequester(
     }
 
     /**
+     * Returns true, if there are more packages waiting to get backed up by calling [requestNext].
+     */
+    val hasNext: Boolean get() = packageIndex < packages.size
+
+    /**
      * Backs up the next chunk of packages.
      *
      * @return true, if backup for all packages was already requested and false,
