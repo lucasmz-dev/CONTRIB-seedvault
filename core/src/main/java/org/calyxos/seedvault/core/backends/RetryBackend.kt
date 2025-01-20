@@ -78,6 +78,7 @@ internal class RetryBackend(private val delegate: Backend) : Backend {
                 delay(newDelayMs)
                 return retry(newRetries, newDelayMs, block)
             } else {
+                log.warn { "Last retry reached, throwing exception..." }
                 throw e
             }
         }
