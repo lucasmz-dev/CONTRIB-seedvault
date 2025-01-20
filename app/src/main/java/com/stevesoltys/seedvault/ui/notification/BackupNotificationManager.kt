@@ -224,6 +224,7 @@ internal class BackupNotificationManager(private val context: Context) {
             setProgress(0, 0, false)
             priority = PRIORITY_LOW
         }.build()
+        Log.i(TAG, "Canceling NOTIFICATION_ID_OBSERVER")
         nm.cancel(NOTIFICATION_ID_OBSERVER)
         nm.notify(NOTIFICATION_ID_SUCCESS, notification)
     }
@@ -243,6 +244,7 @@ internal class BackupNotificationManager(private val context: Context) {
             setProgress(0, 0, false)
             priority = PRIORITY_LOW
         }.build()
+        Log.i(TAG, "Canceling NOTIFICATION_ID_OBSERVER")
         nm.cancel(NOTIFICATION_ID_OBSERVER)
         nm.notify(NOTIFICATION_ID_ERROR, notification)
     }
