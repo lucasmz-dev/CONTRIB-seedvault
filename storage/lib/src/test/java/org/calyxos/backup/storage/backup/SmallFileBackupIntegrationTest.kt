@@ -121,7 +121,7 @@ internal class SmallFileBackupIntegrationTest {
             observer.onFileBackedUp(file2, true, 0, match<Long> { it <= outputStream2.size() }, "S")
         } just Runs
 
-        val result = smallFileBackup.backupFiles(files, availableChunkIds, observer)
+        val result = smallFileBackup.backupFiles(files, availableChunkIds, { false }, observer)
         assertEquals(setOf(chunkId.toHexString()), result.chunkIds)
         assertEquals(1, result.backupDocumentFiles.size)
         assertEquals(backupFile, result.backupDocumentFiles[0])

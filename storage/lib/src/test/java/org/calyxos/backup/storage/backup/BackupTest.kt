@@ -17,6 +17,7 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.slot
+import io.mockk.verify
 import kotlinx.coroutines.runBlocking
 import org.calyxos.backup.storage.backup.Backup.Companion.CHUNK_SIZE_MAX
 import org.calyxos.backup.storage.db.CachedChunk
@@ -37,13 +38,15 @@ import org.calyxos.seedvault.core.crypto.CoreCrypto.ALGORITHM_HMAC
 import org.calyxos.seedvault.core.crypto.CoreCrypto.KEY_SIZE_BYTES
 import org.calyxos.seedvault.core.crypto.KeyManager
 import org.junit.Assert.assertArrayEquals
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import javax.crypto.spec.SecretKeySpec
 import kotlin.random.Random
-import kotlin.test.assertEquals
 
 internal class BackupTest {
 
@@ -97,12 +100,7 @@ internal class BackupTest {
         )
 
         // preliminaries find the file above
-        coEvery { backend.list(any(), Blob::class, callback = any()) } just Runs
-        every { chunksCache.areAllAvailableChunksCached(emptySet()) } returns true
-        every { fileScanner.getFiles() } returns scannedFiles
-        every { filesCache.getByUri(any()) } returns null // nothing is cached, all is new
-        every { chunksCache.get(any()) } returns null // no chunks are cached, all are new
-        every { chunksCache.hasCorruptedChunks(any()) } returns false // no chunks corrupted
+        prepareBackup(scannedFiles)
 
         // backup file and save its blob
         every {
@@ -143,4 +141,80 @@ internal class BackupTest {
         assertEquals(size2, outputStream2.size().toLong())
     }
 
+    @Test
+    fun testAbortBackupEarly() {
+        every { backendManager.canDoBackupNow() } returns false
+
+        val e = assertThrows(IOException::class.java) {
+            runBlocking {
+                backup.runBackup(null)
+            }
+        }
+        assertEquals("Metered Network", e.message)
+    }
+
+    @Test
+    fun testAbortBackupBeforeSmallFiles() {
+        // define one file in backup
+        val fileMBytes = Random.nextBytes(Random.nextInt(1, CHUNK_SIZE_MAX))
+        val fileM = getRandomDocFile(fileMBytes.size)
+        val scannedFiles = FileScannerResult(
+            smallFiles = listOf(fileM),
+            files = listOf(fileM),
+        )
+
+        prepareBackup(scannedFiles)
+        every { backendManager.canDoBackupNow() } returns true andThen false
+        every {
+            contentResolver.openInputStream(fileM.uri)
+        } returns ByteArrayInputStream(fileMBytes)
+
+        val e = assertThrows(IOException::class.java) {
+            runBlocking {
+                backup.runBackup(null)
+            }
+        }
+        assertEquals("Metered Network", e.message)
+    }
+
+    @Test
+    fun testAbortBackupBeforeLargeFiles() {
+        // define one file in backup
+        val fileMBytes = Random.nextBytes(Random.nextInt(1, CHUNK_SIZE_MAX))
+        val fileM = getRandomDocFile(fileMBytes.size)
+        val scannedFiles = FileScannerResult(
+            smallFiles = listOf(fileM),
+            files = listOf(fileM),
+        )
+
+        prepareBackup(scannedFiles)
+        every { backendManager.canDoBackupNow() } returnsMany listOf(true, true, true, false)
+        every {
+            contentResolver.openInputStream(fileM.uri)
+        } returns ByteArrayInputStream(fileMBytes)
+        coEvery { backend.save(match { it is Blob }, any()) } returns 42L
+        every { chunksCache.insert(any<CachedChunk>()) } just Runs
+        every { filesCache.upsert(any()) } just Runs
+
+        val e = assertThrows(IOException::class.java) {
+            runBlocking {
+                backup.runBackup(null)
+            }
+        }
+        assertEquals("Metered Network", e.message)
+
+        verify {
+            filesCache.upsert(any()) // small file got backed up
+        }
+    }
+
+    private fun prepareBackup(scannedFiles: FileScannerResult) {
+        every { backendManager.canDoBackupNow() } returns true
+        coEvery { backend.list(any(), Blob::class, callback = any()) } just Runs
+        every { chunksCache.areAllAvailableChunksCached(emptySet()) } returns true
+        every { fileScanner.getFiles() } returns scannedFiles
+        every { filesCache.getByUri(any()) } returns null // nothing is cached, all is new
+        every { chunksCache.get(any()) } returns null // no chunks are cached, all are new
+        every { chunksCache.hasCorruptedChunks(any()) } returns false // no chunks corrupted
+    }
 }

@@ -100,6 +100,10 @@ internal class Backup(
 
     @Throws(IOException::class, GeneralSecurityException::class)
     suspend fun runBackup(backupObserver: BackupObserver?) {
+        if (!backendManager.canDoBackupNow()) {
+            Log.w(TAG, "runBackup(): Can't do backup right now, aborting...")
+            throw IOException("Metered Network")
+        }
         backupObserver?.onStartScanning()
         var duration: Duration? = null
         try {
@@ -142,15 +146,29 @@ internal class Backup(
         availableChunkIds: Set<String>,
         backupObserver: BackupObserver?,
     ) {
+        if (!backendManager.canDoBackupNow()) {
+            Log.w(TAG, "backupFiles(): Can't do backup right now, aborting...")
+            throw IOException("Metered Network")
+        }
+        val wasAborted = { !backendManager.canDoBackupNow() }
         val startTime = System.currentTimeMillis()
         val numSmallFiles = filesResult.smallFiles.size
         val smallResult = measure("Backing up $numSmallFiles small files") {
-            smallFileBackup.backupFiles(filesResult.smallFiles, availableChunkIds, backupObserver)
+            smallFileBackup.backupFiles(
+                files = filesResult.smallFiles,
+                availableChunkIds = availableChunkIds,
+                wasAborted = wasAborted,
+                backupObserver = backupObserver,
+            )
+        }
+        if (!backendManager.canDoBackupNow()) {
+            Log.w(TAG, "backupFiles(): Can't do backup right now, aborting...")
+            throw IOException("Metered Network")
         }
         MemoryLogger.log()
         val numLargeFiles = filesResult.files.size
         val largeResult = measure("Backing up $numLargeFiles files") {
-            fileBackup.backupFiles(filesResult.files, availableChunkIds, backupObserver)
+            fileBackup.backupFiles(filesResult.files, availableChunkIds, wasAborted, backupObserver)
         }
         MemoryLogger.log()
         val result = largeResult + smallResult

@@ -110,7 +110,7 @@ class BackendManager(
      * @return true if a backup is possible, false if not.
      */
     @WorkerThread
-    fun canDoBackupNow(): Boolean {
+    override fun canDoBackupNow(): Boolean {
         val storage = backendProperties ?: return false
         return !isOnUnavailableUsb() &&
             !storage.isUnavailableNetwork(context, settingsManager.useMeteredNetwork)

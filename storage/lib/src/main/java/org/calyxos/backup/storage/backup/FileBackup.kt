@@ -34,6 +34,7 @@ internal class FileBackup(
     suspend fun backupFiles(
         files: List<ContentFile>,
         availableChunkIds: Set<String>,
+        wasAborted: () -> Boolean,
         backupObserver: BackupObserver?,
     ): BackupResult {
         val chunkIds = HashSet<String>()
@@ -41,6 +42,7 @@ internal class FileBackup(
         val backupDocumentFiles = ArrayList<BackupDocumentFile>()
         var bytesWritten = 0L
         files.forEach { file ->
+            if (wasAborted()) throw IOException("Metered Network")
             val result = try {
                 backupFile(file, availableChunkIds)
             } catch (e: IOException) {
