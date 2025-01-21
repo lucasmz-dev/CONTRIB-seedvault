@@ -60,8 +60,8 @@
     <string name="settings_backup_new_code_dialog_title">New recovery code required</string>
     <string name="settings_backup_new_code_dialog_message">To continue using app backups, you need to generate a new recovery code.\n\nWe are sorry for the inconvenience.</string>
     <string name="settings_backup_new_code_code_dialog_ok">New code</string>
-    <string name="settings_backup_metered_title">Metered network</string>
-    <string name="settings_backup_metered_text">You are currently on a network where you may pay for data, so backup won\'t proceed.\n\nYou can enable backups on mobile data under \"Backup scheduling\".</string>
+    <string name="settings_backup_metered_title">Backup stopped</string>
+    <string name="settings_backup_metered_text">The backup won\'t proceed because your device is using mobile data.\n\nYou can enable backups on mobile data under \"Backup scheduling\".</string>
 
 
     <string name="settings_scheduling_frequency_title">Backup frequency</string>
@@ -172,7 +172,7 @@
     <string name="notification_success_text">%1$d of %2$d apps backed up (%3$s). Tap to learn more.</string>
     <string name="notification_failed_title">Backup failed</string>
     <string name="notification_failed_text">An error occurred while running the backup.</string>
-    <string name="notification_failed_metered_text">Device had switched to metered network, so backup was aborted.</string>
+    <string name="notification_failed_metered_text">The backup has been aborted. Are you using mobile data? Connect to Wi-Fi to continue.</string>
 
     <string name="notification_error_channel_title">Error notification</string>
     <string name="notification_error_title">Backup error</string>
