@@ -19,4 +19,9 @@
     <string name="snapshots_empty">Резервні копії пам \'яті не знайдено
 \n
 \nВибачте, але немає нічого, що можна було б відновити.</string>
+    <string name="select_files_number_of_files">%1$d файл(и/ів)</string>
+    <string name="select_files_button_restore">Відновити обрані файли</string>
+    <string name="select_files_title">Переглянути файли для відновлення</string>
+    <string name="notification_restore_complete_dups">%1$d файлів мають дублі.</string>
+    <string name="notification_restore_complete_errors">%1$d файлів з помилками.</string>
 </resources>

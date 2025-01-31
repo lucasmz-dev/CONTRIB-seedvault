@@ -19,4 +19,9 @@
     <string name="snapshots_empty">未找到存储备份
 \n
 \n抱歉，没有什么可以恢复的。</string>
+    <string name="select_files_title">检查用于恢复的文件</string>
+    <string name="select_files_number_of_files">%1$d 个文件</string>
+    <string name="select_files_button_restore">恢复所选文件</string>
+    <string name="notification_restore_complete_dups">%1$d 个文件是重复项。</string>
+    <string name="notification_restore_complete_errors">%1$d 个文件有错误。</string>
 </resources>
