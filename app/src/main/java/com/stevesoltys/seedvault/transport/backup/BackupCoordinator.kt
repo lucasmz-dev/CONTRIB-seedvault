@@ -75,7 +75,7 @@ internal class BackupCoordinator(
     private val state = CoordinatorState(
         calledInitialize = false,
         calledClearBackupData = false,
-        cancelReason = UNKNOWN_ERROR
+        cancelReason = UNKNOWN_ERROR,
     )
     private val launchableSystemApps by lazy {
         packageService.launchableSystemApps.map { it.activityInfo.packageName }.toSet()
