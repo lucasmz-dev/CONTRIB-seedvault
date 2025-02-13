@@ -244,7 +244,7 @@ class SettingsManager(private val context: Context) {
         prefs.edit().putStringSet(PREF_KEY_BACKUP_APP_BLACKLIST, blacklistedApps).apply()
     }
 
-    val quota: Long = 1024 * 1024 * 1024 // 1 GiB for now
+    val quota: Long = 3L * 1024 * 1024 * 1024 // 3 GiB for now
 
     /**
      * This assumes that if there's no storage plugin set, it is the first start.
