@@ -1,3 +1,11 @@
+## [15.5.3] - 2025-XX-XX
+* Fixed backup errors with USB when file and app backup are both on
+* Fixed overdue backups not automatically starting when USB drives are plugged in
+* Fixed "System apps" not being backed up
+* Fixed a common error (StaleDataException) causing backups to fail
+* Implemented a wrapper for the backend with a retrying mechanism, giving us less common errors
+* Updated dependencies for 15 QPR1
+
 ## [15-5.2] - 2024-12-24
 * It is now possible to verify the integrity of file backups as well, partially or fully
 * Improve files backup snapshot UI
