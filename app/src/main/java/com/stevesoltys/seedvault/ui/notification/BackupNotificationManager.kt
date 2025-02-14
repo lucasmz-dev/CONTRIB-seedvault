@@ -14,10 +14,10 @@ import android.app.NotificationManager
 import android.app.NotificationManager.IMPORTANCE_DEFAULT
 import android.app.NotificationManager.IMPORTANCE_HIGH
 import android.app.NotificationManager.IMPORTANCE_LOW
-import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.app.PendingIntent.getActivity
+import android.app.PendingIntent.getBroadcast
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
@@ -38,6 +38,7 @@ import com.stevesoltys.seedvault.restore.EXTRA_PACKAGE_NAME
 import com.stevesoltys.seedvault.restore.REQUEST_CODE_UNINSTALL
 import com.stevesoltys.seedvault.restore.RestoreActivity
 import com.stevesoltys.seedvault.settings.ACTION_APP_STATUS_LIST
+import com.stevesoltys.seedvault.settings.ACTION_TRY_AGAIN
 import com.stevesoltys.seedvault.settings.SettingsActivity
 import com.stevesoltys.seedvault.ui.check.ACTION_FINISHED
 import com.stevesoltys.seedvault.ui.check.ACTION_SHOW
@@ -229,19 +230,30 @@ internal class BackupNotificationManager(private val context: Context) {
         nm.notify(NOTIFICATION_ID_SUCCESS, notification)
     }
 
-    fun onBackupError() {
+    fun onBackupError(meteredNetwork: Boolean = false) {
         val intent = Intent(context, SettingsActivity::class.java)
         val pendingIntent = getActivity(context, 0, intent, FLAG_IMMUTABLE)
+        val actionIntent = Intent(ACTION_TRY_AGAIN).apply { setPackage(context.packageName) }
+        val flags = FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
+        val actionPendingIntent = getBroadcast(context, REQUEST_CODE_UNINSTALL, actionIntent, flags)
+        val actionText = context.getString(R.string.recovery_code_verification_try_again)
+        val action = Action(null, actionText, actionPendingIntent)
+        val text = if (meteredNetwork) {
+            context.getString(R.string.notification_failed_metered_text)
+        } else {
+            context.getString(R.string.notification_failed_text)
+        }
         val notification = Builder(context, CHANNEL_ID_ERROR).apply {
             setSmallIcon(R.drawable.ic_cloud_error)
             setContentTitle(context.getString(R.string.notification_failed_title))
-            setContentText(context.getString(R.string.notification_failed_text))
+            setContentText(text)
             setOngoing(false)
             setShowWhen(true)
             setAutoCancel(true)
             setContentIntent(pendingIntent)
             setWhen(System.currentTimeMillis())
             setProgress(0, 0, false)
+            addAction(action)
             priority = PRIORITY_LOW
         }.build()
         Log.i(TAG, "Canceling NOTIFICATION_ID_OBSERVER")
@@ -314,7 +326,7 @@ internal class BackupNotificationManager(private val context: Context) {
         }
         val flags = FLAG_UPDATE_CURRENT or FLAG_IMMUTABLE
         val pendingIntent =
-            PendingIntent.getBroadcast(context, REQUEST_CODE_UNINSTALL, intent, flags)
+            getBroadcast(context, REQUEST_CODE_UNINSTALL, intent, flags)
         val actionText = context.getString(R.string.notification_restore_error_action)
         val action = Action(R.drawable.ic_warning, actionText, pendingIntent)
         val notification = Builder(context, CHANNEL_ID_RESTORE_ERROR).apply {

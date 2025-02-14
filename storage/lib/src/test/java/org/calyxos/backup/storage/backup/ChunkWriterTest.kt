@@ -29,8 +29,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
+import java.io.IOException
 import java.io.OutputStream
 import kotlin.random.Random
+import kotlin.test.assertFailsWith
 
 internal class ChunkWriterTest {
 
@@ -116,7 +118,7 @@ internal class ChunkWriterTest {
         every { chunksCache.insert(chunks[1].toCachedChunk(3)) } just Runs
         every { chunksCache.insert(chunks[2].toCachedChunk(3)) } just Runs
 
-        chunkWriter.writeChunk(inputStream, chunks, emptyList())
+        chunkWriter.writeChunk(inputStream, chunks, emptyList()) { false }
 
         // check that version was written as the first byte
         outputStreams.forEach { outputStream ->
@@ -171,7 +173,7 @@ internal class ChunkWriterTest {
         // insert last not cached chunk into cache after upload
         every { chunksCache.insert(chunks[2].toCachedChunk(3)) } just Runs
 
-        chunkWriter.writeChunk(inputStream, chunks, listOf(chunkId1))
+        chunkWriter.writeChunk(inputStream, chunks, listOf(chunkId1)) { false }
 
         // check that output matches chunk data
         assertEquals(VERSION, chunk1Output.toByteArray()[0])
@@ -234,7 +236,7 @@ internal class ChunkWriterTest {
             chunksCache.insert(chunks[2].toCachedChunk(chunk3Bytes.size.toLong() + 1))
         } just Runs
 
-        chunkWriter.writeChunk(inputStream, chunks, emptyList())
+        chunkWriter.writeChunk(inputStream, chunks, emptyList()) { false }
 
         // check that version and wrapped key was written as the first byte
         outputStreams.forEach { outputStream ->
@@ -291,7 +293,7 @@ internal class ChunkWriterTest {
             chunksCache.insert(chunks[0].toCachedChunk(chunkBytes.size.toLong() + 1))
         } just Runs
 
-        chunkWriter.writeChunk(inputStream, chunks, emptyList())
+        chunkWriter.writeChunk(inputStream, chunks, emptyList()) { false }
 
         // check that output matches chunk data
         assertEquals(1 + chunks[0].plaintextSize.toInt(), chunkOutput1.size())
@@ -311,6 +313,20 @@ internal class ChunkWriterTest {
         )
         assertEquals(chunkOutput3.size().toLong(), size1)
         assertEquals(chunkOutput3.size().toLong(), size2)
+    }
+
+    @Test
+    fun testAbort() = runBlocking {
+        val chunkBytes = Random.nextBytes(16 * 1024 * 1024)
+        val inputStream = ByteArrayInputStream(chunkBytes)
+        val chunks = listOf(
+            Chunk(chunkId1, 0, chunkBytes.size.toLong()),
+        )
+
+        val e = assertFailsWith<IOException> {
+            chunkWriter.writeChunk(inputStream, chunks, emptyList()) { true }
+        }
+        assertEquals("Metered Network", e.message)
     }
 
     private fun MockKMatcherScope.bytes(size: Int) = match<ByteArray> {

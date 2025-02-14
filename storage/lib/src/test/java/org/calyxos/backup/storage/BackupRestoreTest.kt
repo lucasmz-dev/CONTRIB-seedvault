@@ -92,6 +92,7 @@ internal class BackupRestoreTest {
         mockkStatic("org.calyxos.backup.storage.UriUtilsKt")
 
         every { backendManager.backend } returns backend
+        every { backendManager.canDoBackupNow() } returns true
         every { db.getFilesCache() } returns filesCache
         every { db.getChunksCache() } returns chunksCache
         every { keyManager.getMainKey() } returns SecretKeySpec(
@@ -526,6 +527,7 @@ internal class BackupRestoreTest {
             keyManager = keyManager,
             cacheRepopulater = cacheRepopulater,
         )
+        every { backendManagerNew.canDoBackupNow() } returns true
         every { backendManagerNew.backend } returnsMany listOf(backend1, backend2)
 
         coEvery { backend1.list(any(), Blob::class, callback = any()) } just Runs

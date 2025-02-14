@@ -50,10 +50,12 @@ internal class ChunkWriter(
         inputStream: InputStream,
         chunks: List<Chunk>,
         missingChunkIds: List<String>,
+        wasAborted: () -> Boolean,
     ): ChunkWriterResult {
         var writtenChunks = 0
         var writtenBytes = 0L
         chunks.forEach { chunk ->
+            if (wasAborted()) throw IOException("Metered Network")
             val cachedChunk = chunksCache.get(chunk.id)
             // TODO missing chunks used by several files will get uploaded several times
             val isMissing = chunk.id in missingChunkIds

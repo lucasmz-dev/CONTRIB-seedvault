@@ -43,6 +43,7 @@ import org.calyxos.seedvault.core.backends.TopLevelFolder
 import java.io.EOFException
 import java.io.IOException
 import java.io.InputStream
+import java.net.SocketException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
@@ -351,7 +352,7 @@ public class WebDavBackend(
     }
 
     override fun isTransientException(e: Exception): Boolean {
-        if (e is SocketTimeoutException) {
+        if (e is SocketTimeoutException || e is SocketException) {
             return true
         } else if (e is UnknownHostException) {
             return true // gets thrown when phone leaves WiFi range

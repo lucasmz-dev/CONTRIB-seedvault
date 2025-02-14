@@ -70,12 +70,10 @@ internal class BackupRequester(
 
     val isBackupEnabled: Boolean get() = backupManager.isBackupEnabled
 
-    private val packages = packageService.eligiblePackages
-    private val observer = NotificationBackupObserver(
-        context = context,
-        backupRequester = this,
-        requestedPackages = packages.size,
-    )
+    private val packages by lazy { packageService.eligiblePackages }
+    private val observer by lazy {
+        NotificationBackupObserver(context, this, packages.size)
+    }
 
     /**
      * The current package index.
@@ -92,6 +90,11 @@ internal class BackupRequester(
 
         return request(getNextChunk())
     }
+
+    /**
+     * Returns true, if there are more packages waiting to get backed up by calling [requestNext].
+     */
+    val hasNext: Boolean get() = packageIndex < packages.size
 
     /**
      * Backs up the next chunk of packages.
