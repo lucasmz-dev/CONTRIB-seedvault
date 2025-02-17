@@ -95,7 +95,7 @@
     <string name="storage_fake_drive_summary">Needs to be plugged in</string>
     <string name="storage_available_bytes"><xliff:g example="1 GB" id="size">%1$s</xliff:g> free</string>
     <string name="storage_not_recommended"><xliff:g example="Skynet">%1$s</xliff:g> (Not recommended)</string>
-    <string name="storage_round_sync_summary_prefix" translatable="false">RoundSync Remote: </string>
+    <string name="storage_round_sync_summary_prefix">RoundSync Remote: </string>
     <string name="storage_fake_nextcloud_title" translatable="false">Nextcloud</string>
     <string name="storage_fake_nextcloud_summary">Tap to install</string>
     <string name="storage_fake_nextcloud_summary_installed">Tap to set up account</string>
@@ -281,7 +281,7 @@
     <string name="restore_finished_button">Finish</string>
 
     <string name="restore_storage_skip">Skip restoring files</string>
-    <string name="restore_storage_choose_snapshot">Choose a storage backup to restore (beta)</string>
+    <string name="restore_storage_choose_snapshot">Choose a file backup to restore (beta)</string>
     <string name="restore_storage_selection_description">Selected files will be restored. Tap folders to see files in them.</string>
     <string name="restore_storage_in_progress_title">Files are being restored…</string>
     <string name="restore_storage_in_progress_info">Your files are being restored in the background. You can start using your phone while this is running.\n\nSome apps (e.g. Signal or WhatsApp) might require files to be fully restored to import a backup. Try to avoid starting those apps before file restore is complete.</string>
