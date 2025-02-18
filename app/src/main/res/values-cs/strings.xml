@@ -264,4 +264,14 @@
     <string name="restore_recycle_backup_title">Znovu použít tuto zálohu?</string>
     <string name="restore_recycle_backup_button_no">Vytvořit novou zálohu</string>
     <string name="restore_recycle_backup_button_yes">Znovu použít zálohu</string>
+    <string name="settings_backup_file_check_title">Zkontrolovat integritu zálohy</string>
+    <string name="settings_backup_file_check_summary">Ujistěte se, že vaše záloha funguje a lze z ní obnovit soubory</string>
+    <string name="settings_file_check_text">Zde můžete provést jednorázovou kontrolu pro ověření vaší zálohy souborů.</string>
+    <string name="settings_file_check_title">Ověřit integritu zálohy souborů</string>
+    <string name="notification_usb_monitor_title">Čekání na USB disk…</string>
+    <string name="notification_usb_monitor_text">Jakmile bude váš USB disk dostupný, bude spuštěno zálohování.</string>
+    <string name="settings_backup_metered_title">Zálohování zastaveno</string>
+    <string name="settings_backup_metered_text">Zálohování nebude pokračovat, protože vaše zařízení používá mobilní data.\n\nZálohování na mobilních datech můžete povolit v sekci „Plánování záloh“.</string>
+    <string name="settings_file_check_text2">Vyberte, jaké množství dat se má stáhnout pro kontrolu. Čím více vyberete, tím déle kontrola zabere, ale o to spolehlivější bude.\n\nKontrola bude provedena na pozadí a po jejím dokončení vám bude posláno oznámení.</string>
+    <string name="notification_failed_metered_text">Zálohování bylo přerušeno. Používáte mobilní data? Připojte se k Wi-Fi pro pokračování.</string>
 </resources>

@@ -266,4 +266,14 @@
     <string name="restore_restore_set_can_not_get_restored">此备份有一些错误。你也许可以部分恢复它。</string>
     <string name="restore_recycle_backup_title">重新使用此备份？</string>
     <string name="restore_recycle_backup_button_no">创建新备份</string>
+    <string name="settings_backup_file_check_title">检查备份完整性</string>
+    <string name="settings_backup_file_check_summary">确保我的备份可用于恢复文件</string>
+    <string name="settings_backup_metered_title">备份停止了</string>
+    <string name="settings_backup_metered_text">备份不会继续，因你的设备正使用移动流量。\n\n你可以在“备份安排”下开启使用移动流量备份。</string>
+    <string name="settings_file_check_title">验证文件备份完整性</string>
+    <string name="settings_file_check_text">你可以在此运行一次性检查来验证文件备份。</string>
+    <string name="settings_file_check_text2">选择应该为此项检查下载多少数据。选得越多，花的时间越长，但检查的可靠性也会越高。\n\n检查会在后台运行，你会收到检查结束通知。</string>
+    <string name="notification_failed_metered_text">备份已被终止。你在使用移动流量吗？请连接到 Wi-Fi 网络以继续。</string>
+    <string name="notification_usb_monitor_text">USB 驱动器可用后我们将开始备份。</string>
+    <string name="notification_usb_monitor_title">等待 USB 驱动器中 …</string>
 </resources>

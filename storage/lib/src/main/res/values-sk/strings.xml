@@ -2,9 +2,7 @@
 <resources>
     <string name="content_options">Možnosti</string>
     <string name="snapshots_title">Dostupné zálohy úložiska</string>
-    <string name="snapshots_empty">Neboli nájdené žiadne zálohy úložiska
-\n
-\nJe nám to ľúto, ale nie je nič, čo by mohlo byť obnovené.</string>
+    <string name="snapshots_empty">Neboli nájdené žiadne zálohy úložiska \n \nJe nám to ľúto, ale nie je nič, čo by mohlo byť obnovené.</string>
     <string name="snapshots_error">Chyba pri načítaní snapshotov</string>
     <string name="content_images">Fotky a obrázky</string>
     <string name="content_videos">Videá</string>

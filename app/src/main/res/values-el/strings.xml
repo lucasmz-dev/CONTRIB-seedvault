@@ -231,4 +231,7 @@
     <string name="restore_storage_selection_description">Θα γίνει επαναφορά των επιλεγμένων αρχείων. Πατήστε τους φακέλους για να δείτε τα αρχεία σε αυτούς.</string>
     <string name="first_start_text">Θέλετε να επαναφέρετε τη συσκευή σας από ένα υπάρχον αντίγραφο ασφαλείας ή να ξεκινήσετε ένα νέο αντίγραφο ασφαλείας;</string>
     <string name="setup_button">Ξεκινήστε νέο</string>
+    <string name="settings_backup_file_check_title">Ελέγξτε την ακεραιότητα του αντιγράφου ασφαλείας</string>
+    <string name="settings_backup_app_check_title">Ελέγξτε την ακεραιότητα</string>
+    <string name="settings_backup_app_check_summary">Βεβαιωθείτε ότι το αντίγραφο ασφαλείας λειτουργεί για επαναφορά</string>
 </resources>

@@ -230,4 +230,7 @@
     <string name="notification_restore_title">Rulează restabilirea</string>
     <string name="setup_button">Pornește una nouă</string>
     <string name="first_start_text">Dorești să restaurezi dispozitivul dintr-o copie de rezervă existentă sau să începi o nouă copie de rezervă?</string>
+    <string name="settings_backup_file_check_title">Verifică integritatea copiei de rezervă</string>
+    <string name="settings_backup_app_check_summary">Asigură-te că copia de rezervă funcționează pentru restaurare</string>
+    <string name="settings_backup_app_check_title">Verifică integritatea</string>
 </resources>

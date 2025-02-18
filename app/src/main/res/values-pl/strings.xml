@@ -266,4 +266,14 @@
     <string name="restore_recycle_backup_button_yes">Ponowne użyj kopii zapasowej</string>
     <string name="restore_restore_set_can_not_get_restored">Ta kopia zapasowa zawiera błędy. Być może uda się ją częściowo przywrócić.</string>
     <string name="restore_recycle_backup_title">Ponownie użyć tej kopii zapasowej?</string>
+    <string name="settings_backup_file_check_title">Sprawdź integralność kopii zapasowej</string>
+    <string name="settings_backup_file_check_summary">Upewnij się, że kopia zapasowa działa podczas przywracania plików</string>
+    <string name="settings_file_check_title">Zweryfikuj integralności kopii zapasowej pliku</string>
+    <string name="settings_file_check_text">Tutaj możesz uruchomić jednorazowe sprawdzenie w celu zweryfikowania kopii zapasowej plików.</string>
+    <string name="notification_usb_monitor_title">Oczekiwanie na napęd USB…</string>
+    <string name="settings_backup_metered_text">Kopia zapasowa nie zostanie utworzona, ponieważ urządzenie korzysta z danych mobilnych.\n\nTworzenie kopii zapasowych danych mobilnych można włączyć w sekcji „Harmonogram tworzenia kopii zapasowych”.</string>
+    <string name="settings_file_check_text2">Wybierz, ile danych pliku ma zostać pobranych w celu sprawdzenia. Im więcej wybierzesz, tym dłużej to potrwa, ale tym bardziej wiarygodne będzie sprawdzenie.\n\nKontrola będzie działać w tle i wyśle powiadomienie po jej zakończeniu.</string>
+    <string name="notification_failed_metered_text">Tworzenie kopii zapasowej zostało przerwane. Czy używasz danych mobilnych? Połącz się z Wi-Fi, aby kontynuować.</string>
+    <string name="notification_usb_monitor_text">Gdy dysk USB będzie dostępny, rozpoczniemy tworzenie kopii zapasowej.</string>
+    <string name="settings_backup_metered_title">Kopia zapasowa zatrzymana</string>
 </resources>
