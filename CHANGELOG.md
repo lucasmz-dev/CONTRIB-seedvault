@@ -2,6 +2,7 @@
 * Added support for user CA certificates
 * Fixed issue where many Go server implementations of WebDAV did not work with the WebDAV client in Seedvault
 * Bumped the app data quota from 1GB to 3GB
+* Nextcloud app is no longer allowed for backup (Use built-in WebDAV Cloud support!)
 * Improved handling of metered networks, if disallowed, the backup process will be aborted
 * Fixed backup errors with USB when file and app backup are both on
 * Fixed overdue backups not automatically starting when USB drives are plugged in
