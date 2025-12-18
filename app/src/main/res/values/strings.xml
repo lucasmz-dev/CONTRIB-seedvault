@@ -15,7 +15,7 @@
 
     <!-- Settings -->
     <string name="settings_category_apps">App backup</string>
-    <string name="settings_backup">Backup my apps</string>
+    <string name="settings_backup">Back up my apps</string>
     <string name="settings_backup_location">Backup location</string>
     <string name="settings_backup_location_none">None</string>
     <string name="settings_backup_location_internal">Internal storage</string>
@@ -30,7 +30,7 @@
     <string name="settings_category_app_data_backup">App data backup</string>
     <string name="settings_backup_apk_title">APK backups</string>
     <string name="settings_backup_apk_summary">Backs up the apps themselves. Otherwise, only app data will get backed up.</string>
-    <string name="settings_backup_apk_dialog_title">Really disable APK backups?</string>
+    <string name="settings_backup_apk_dialog_title">Really disable APK backups?</string>ś
     <string name="settings_backup_apk_dialog_message">After disabling APK backups, app data will still be backed up. However, it will not get restored automatically.\n\nYou will need to install all your apps manually while having \"Automatic Restore\" switched on.</string>
     <string name="settings_backup_apk_dialog_cancel">Cancel</string>
     <string name="settings_backup_apk_dialog_disable">Disable APK backups</string>
@@ -44,9 +44,9 @@
     <string name="settings_backup_app_check_title">Check integrity</string>
     <string name="settings_backup_app_check_summary">Ensure that backup is working for restore</string>
     <string name="settings_backup_exclude_apps">Exclude apps</string>
-    <string name="settings_backup_now">Backup now</string>
+    <string name="settings_backup_now">Back up now</string>
     <string name="settings_category_storage">File backup (beta)</string>
-    <string name="settings_backup_storage_title">Backup my files</string>
+    <string name="settings_backup_storage_title">Back up my files</string>
     <string name="settings_backup_files_title">Included files and folders</string>
     <string name="settings_backup_files_summary">None</string>
     <string name="settings_backup_file_check_title">Check backup integrity</string>
@@ -161,7 +161,7 @@
     <!-- Notification -->
     <string name="notification_channel_title">Backup notification</string>
     <string name="notification_success_channel_title">Success notification</string>
-    <string name="notification_title">Backup running</string>
+    <string name="notification_title">Backing up</string>
     <string name="notification_init_text">Preparing existing backup data for reuse…</string>
     <string name="notification_finalizing_text">Finalizing backup…</string>
     <string name="notification_apk_text">Backing up APK of %s</string>
@@ -228,7 +228,7 @@
     <string name="backup_section_user">Apps</string>
     <string name="backup_app_stopped_button">Launch</string>
     <string name="backup_app_stopped_no_intent">Cannot launch app</string>
-    <!-- This text gets shown for apps that the OS did not try to backup for whatever reason e.g. no backup was run yet -->
+    <!-- This text gets shown for apps that the OS did not try to back up for whatever reason e.g. no backup was run yet -->
     <string name="backup_app_not_yet_backed_up">Waiting to back up…</string>
     <string name="restore_app_not_yet_backed_up">Was not yet backed up</string>
     <string name="backup_app_in_progress">Backing up</string>
